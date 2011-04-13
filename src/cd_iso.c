@@ -23,7 +23,7 @@
 #include "client.h"
 #include "cd_iso.h"
 
-static char *ISO_FILENAME = "Heart Of The Alien (U).iso";
+static const char *ISO_FILENAME = "Heart Of The Alien (U).iso";
 
 typedef struct file_offset_s
 {

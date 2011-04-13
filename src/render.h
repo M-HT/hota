@@ -7,7 +7,7 @@ int render_create_surface();
 int get_scroll_register();
 void set_scroll(int scroll);
 
-void render(unsigned char *src);
+void render(char *src);
 
 void set_palette(int which);
 void set_palette_rgb12(unsigned char *rgb12);

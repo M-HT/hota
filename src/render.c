@@ -31,8 +31,6 @@ static int scroll_reg = 0;
 extern int fullscreen_flag;
 extern int filtered_flag;
 extern int scale;
-extern int palette_changed;
-extern SDL_Color palette[256];
 extern SDL_Surface *screen;
 
 static int palette_changed = 0;
@@ -110,13 +108,13 @@ void render1x(char *src)
 /* advmame2x scaler */
 void render2x_scaled(char *src)
 {
-	scale2x(screen, src, 304, 304, 192);
+	scale2x(screen, (Uint8 *)src, 304, 304, 192);
 }
 
 /* advmame3x scaler */
 void render3x_scaled(char *src)
 {
-	scale3x(screen, src, 304, 304, 192);
+	scale3x(screen, (Uint8 *)src, 304, 304, 192);
 }
 
 /** Simple X2 scaler
@@ -129,7 +127,8 @@ void render2x(char *src)
         
 	for (y=0; y<192; y++)
 	{
-		unsigned char *srcp, *widep;
+		char *srcp;
+		unsigned char *widep;
 
 		srcp = src + 304*y;
 		widep = wide;
@@ -154,7 +153,8 @@ void render3x(char *src)
         
 	for (y=0; y<192; y++)
 	{
-		unsigned char *srcp, *widep;
+		char *srcp;
+		unsigned char *widep;
 
 		srcp = src + 304*y;
 		widep = wide;
@@ -174,7 +174,7 @@ void render3x(char *src)
 /** Renders a virtual screen
     @param src
 */
-void render(unsigned char *src)
+void render(char *src)
 {
 	SDL_LockSurface(screen);
 

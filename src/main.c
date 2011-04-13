@@ -104,10 +104,6 @@ SDL_Surface *screen;
 static unsigned char scratchpad[29184];
 
 
-#ifdef ENABLE_DEBUG
-short old_var[256+64*32];
-#endif
-
 static int load_room(int index)
 {
 	char filename[16];
@@ -192,7 +188,7 @@ void load_room_screen(int room, int index)
 	unpack_room(scratchpad, index - 1);           
 
 	/* convert 4bpp -> 8bpp */
-	pixels = get_screen_ptr(0);
+	pixels = (unsigned char *) get_screen_ptr(0);
 	for (i=0; i<304*192/2; i++)
 	{
 		pixels[i*2+0] = scratchpad[i] >> 4;

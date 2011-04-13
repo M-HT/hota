@@ -100,7 +100,7 @@ void play_sample(int index, int volume, int channel)
 	outlen = length * cvt.len_mult;
 
 	cvt.len = length;
-	cvt.buf = (char *)malloc(outlen);
+	cvt.buf = (Uint8 *)malloc(outlen);
 	if (cvt.buf == NULL)
 	{
 		fprintf(stderr, "failed to allocate %d bytes for sample\n", outlen);

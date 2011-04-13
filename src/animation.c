@@ -29,12 +29,12 @@
 #include "render.h"
 #include "common.h"
 #include "client.h"
+#include "main.h"
 
 ///////
 void rest(int fps);
 
 extern SDL_Surface *screen;
-extern SDL_Color palette[256];
 
 /* used for 4->8 bit convertion (140K penalty) */
 static unsigned char dummy[304*192/2];
@@ -51,11 +51,11 @@ static void post_render(int fps)
 static void copy_to_screen()
 {
 	set_scroll(0); /////////
-	render(screen0);
+	render((char *)screen0);
 	SDL_UpdateRect(screen, 0, 0, 0, 0);
 }
 
-static void draw_pixel(char *out, int offset, int color)
+static void draw_pixel(unsigned char *out, int offset, int color)
 {
 	if (offset >= 304*192)
 	{
@@ -75,10 +75,10 @@ static void fillline(unsigned char *screen, int offset, int count, int color)
 	}
 }
 
-static void unpack_animation_delta(int offset, char *out)
+static void unpack_animation_delta(int offset, unsigned char *out)
 {
 	int a5;
-	char *src;
+	unsigned char *src;
 	int d0, d2, d3, d5, d6, d7, d1;
 
 	a5 = offset;
@@ -780,7 +780,7 @@ int play_sequence(int offset, int fps)
 	d7++;
 
 #if 0
-	this code was never executed. I wonder why it's even here :)
+	//this code was never executed. I wonder why it's even here :)
 
 	if (byte_0_7FF96 == 0)
 	{
