@@ -73,7 +73,6 @@ int next_script;
 int current_backdrop;
 int current_room;
 
-int filtered_flag = 0;
 int speed_throttle = 0;
 
 int debug_flag = 0;

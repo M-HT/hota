@@ -22,6 +22,7 @@
 #include "render.h"
 #include "game2bin.h"
 
+#include "client.h"
 #include "scale2x.h"
 #include "scale3x.h"
 
@@ -29,8 +30,6 @@ static int fullscreen = 0;
 static int scroll_reg = 0;
 
 extern int fullscreen_flag;
-extern int filtered_flag;
-extern int scale;
 extern SDL_Surface *screen;
 
 static int palette_changed = 0;
@@ -184,7 +183,7 @@ void render(char *src)
 		SDL_SetColors(screen, palette, 0, 256);
 	}
 
-	switch(scale)
+	switch(cls.scale)
 	{
 		case 1:
 		/* normal 1x */
@@ -192,7 +191,7 @@ void render(char *src)
 		break;
 
 		case 2:
-		if (filtered_flag == 0)
+		if (cls.filtered == 0)
 		{
 			render2x(src);
 		}
@@ -203,7 +202,7 @@ void render(char *src)
 		break;
 
 		case 3:
-		if (filtered_flag == 0)
+		if (cls.filtered == 0)
 		{
 			render3x(src);
 		}
@@ -267,7 +266,7 @@ void set_palette(int which)
 void toggle_fullscreen()
 {
 	/* hack, fullscreen not supported at scale==3 */
-	if (scale == 3)
+	if (cls.scale == 3)
 	{
 		return;
 	}
@@ -280,7 +279,7 @@ void toggle_fullscreen()
 	{
 		LOG(("create SDL surface of 304x192x8\n"));
 
-		screen = SDL_SetVideoMode(304*scale, 192*scale, 8, SDL_SWSURFACE);
+		screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
 		SDL_SetColors(screen, palette, 0, 256);
 		SDL_ShowCursor(1);
 	}
@@ -288,8 +287,8 @@ void toggle_fullscreen()
 	{
 		int w, h;
 
-		w = 320*scale;
-		h = 200*scale;
+		w = 320*cls.scale;
+		h = 200*cls.scale;
 
 		LOG(("setting fullscreen mode %dx%dx8\n", w, h));
 
@@ -302,7 +301,7 @@ void toggle_fullscreen()
 
 int render_create_surface()
 {
-	screen = SDL_SetVideoMode(304*scale, 192*scale, 8, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
 	if (screen == NULL) 
 	{
 		return -1;

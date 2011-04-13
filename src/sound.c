@@ -23,12 +23,11 @@
 #include <malloc.h>
 #include <string.h>
 
+#include "client.h"
 #include "debug.h"
 #include "sound.h"
 #include "common.h"
 #include "vm.h"
-
-extern int nosound_flag;
 
 /* cached samples, useless convertions and allocations hurt my eyes! */
 static Mix_Chunk *cached_samples[256];
@@ -63,7 +62,7 @@ void play_sample(int index, int volume, int channel)
 	SDL_AudioCVT cvt;
 	Mix_Chunk *chunk;
 
-	if (nosound_flag)
+	if (cls.nosound)
 	{
 		/* day off! */
 		return;
@@ -122,14 +121,14 @@ void play_sample(int index, int volume, int channel)
 		{
 			s = u;
 		}
-	
+
 		*current_sample++ = s;
 	}
 
 	SDL_ConvertAudio(&cvt);
 
 	LOG(("sample length %d\n", length));
-	
+
 	chunk = (Mix_Chunk *)malloc(sizeof(Mix_Chunk));
 	chunk->allocated = 1;
 	chunk->abuf = cvt.buf;
