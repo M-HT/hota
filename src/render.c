@@ -241,9 +241,9 @@ void set_palette_rgb12(unsigned char *rgb12)
 		g = ((c >> 4) & 0xf) << 4;
 		b = ((c >> 8) & 0xf) << 4;
 
-		palette[i].r = r;
-		palette[i].g = g;
-		palette[i].b = b;
+		palette[i].r = r | (r >> 4);
+		palette[i].g = g | (g >> 4);
+		palette[i].b = b | (b >> 4);
 	}
 
 	palette_changed = 1;
