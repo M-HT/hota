@@ -892,7 +892,7 @@ static void help()
 {
 	printf("Heart of The Alien Redux %s", VERSION);
 	puts("USAGE:");
-	#ifdef DEBUG_ENABLED
+	#ifdef ENABLE_DEBUG
 	puts("\t--debug        turn on debugging");
 	#endif
 	puts("\t--iso          use iso and mp3s (in current directory)");
