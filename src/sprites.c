@@ -308,6 +308,7 @@ void remove_sprite(int var)
 
 	sprites[entry].next = sprites[to_remove].next;
 	sprites[to_remove].next = last_sprite;
+	last_sprite = to_remove;
 	sprite_count--;
 }
 
