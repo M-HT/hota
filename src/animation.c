@@ -823,10 +823,14 @@ int play_sequence(int offset, int fps)
 int play_death_animation(int index)
 {
 	unsigned long offset;
+    int old = toggle_aux(0);
+    toggle_aux(old);
 
 	/* set palette 2 ? */
 	offset = 0xf910 + (index << 2);
-	return play_sequence(get_long(offset), 15);
+	int ret = play_sequence(get_long(offset), 15);
+    toggle_aux(old);
+    return ret;
 }
 
 /** Plays an animation file
