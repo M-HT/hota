@@ -546,6 +546,8 @@ int play_sequence(int offset, int fps)
 	int d0, d1, d3, d4, d6, d7;
 	int a0, a1, a2, a3, a4, a5;
 
+    rest(0);
+
 	/* This code is obscure. I have no idea why it's written this way,
 	 * or how the hell it works, but .. it just works!.
 	 */
@@ -830,6 +832,7 @@ int play_death_animation(int index)
 	offset = 0xf910 + (index << 2);
 	int ret = play_sequence(get_long(offset), 15);
     toggle_aux(old);
+    rest(0);
     return ret;
 }
 
@@ -895,7 +898,10 @@ int play_animation(const char *filename, int fileoffset)
 			break;
 		}
 
+        rest(fps_);
 	}
+
+    rest(0);
 
 	/* just in case, clean variable 250 (key_a pressed) */
 	set_variable(250, 0);
