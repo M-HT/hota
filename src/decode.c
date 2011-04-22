@@ -140,7 +140,7 @@ void load_sprite(int index, int list_entry)
 	}
 
 	sprites[list_entry].x = d1;
-	d0 = get_byte(a4 + 3);    
+	d0 = get_byte(a4 + 3);
 	sprites[list_entry].u6 = (unsigned char)d0;
 	d0 = d0 >> 1;
 	d2 = d2 - d0;
@@ -233,8 +233,8 @@ void collision_against_set()
 	}
 
 	LOG(("checking collision against sprite %d\n", entry_trg));
-	LOG(("src (%d, %d) - (%d, %d)\n", sprites[entry_src].w4, sprites[entry_src].w5,  sprites[entry_src].w4 + sprites[entry_src].u6, sprites[entry_src].w5 + sprites[entry_src].u7)); 
-	LOG(("dst (%d, %d) - (%d, %d)\n", sprites[entry_trg].w4, sprites[entry_trg].w5,  sprites[entry_trg].w4 + sprites[entry_trg].u6, sprites[entry_trg].w5 + sprites[entry_trg].u7)); 
+	LOG(("src (%d, %d) - (%d, %d)\n", sprites[entry_src].w4, sprites[entry_src].w5,  sprites[entry_src].w4 + sprites[entry_src].u6, sprites[entry_src].w5 + sprites[entry_src].u7));
+	LOG(("dst (%d, %d) - (%d, %d)\n", sprites[entry_trg].w4, sprites[entry_trg].w5,  sprites[entry_trg].w4 + sprites[entry_trg].u6, sprites[entry_trg].w5 + sprites[entry_trg].u7));
 
 	if (sprites[entry_trg].u3 == 0)
 	{
@@ -272,8 +272,8 @@ void collision_against_set()
 
 	LOG(("A (%d, %d) / (%d, %d)\n", d6, d7, sprites[entry_trg].w4, sprites[entry_trg].w5));
 
-	d4 = sprites[entry_trg].w4 + sprites[entry_trg].u6; 
-	d5 = sprites[entry_trg].w5 + sprites[entry_trg].u7; 
+	d4 = sprites[entry_trg].w4 + sprites[entry_trg].u6;
+	d5 = sprites[entry_trg].w5 + sprites[entry_trg].u7;
 
 	/* c5d8 */
 	if (d4 < sprites[entry_src].w4 || d5 < sprites[entry_src].w5)
@@ -295,7 +295,7 @@ void collision_against_set()
 	 * is closer to the source entry.
 	 */
 	entry_a1 = d3;
-	
+
 	if (flipped == 0)
 	{
 		/* c5fc */
@@ -350,7 +350,7 @@ void op_27()
 	d1 = next_pc();
 
 	entry = d0;
-		
+
 	if (d1 & 0x80)
 	{
 		d1 = d1 & 0x7f;
@@ -360,19 +360,19 @@ void op_27()
 			/* d1 was 0x93 */
 			d0 = sprites[entry].y;
 			d1 = sprites[entry].index;
-	
+
 			a4 = get_long(0xf904) + (d1 << 2);
 			a4 = get_long(a4);
-	
+
 			d3 = sprites[entry].frame;
 			d1 = d3 & 0x7f;
-	
+
 			d1 = get_word(a4 + d1*2 + 6);
 			a2 = a4 + d1 + 3;
 			d3 = d0;
 
 			/* assumption: return hotspot y */
-		
+
 			d1 = get_byte(a2++);
 			d0 = d0 + d1;
 			set_variable(2, d0);
@@ -380,7 +380,7 @@ void op_27()
 			LOG(("var[2] was set to 0x%x\n", d0));
 		}
 		else
-		{	
+		{
 			LOG(("loc_d1_ne_0x13: set_var(2, %d) d1=%d entry=%d\n", d1, entry, get_sprite_data_word(entry, d1)));
 
 			set_variable(2, get_sprite_data_word(entry, d1));
@@ -466,7 +466,7 @@ void op_24()
 		x1 = x1 - x2;
 		x2 = tmp;
 	}
-	else    	
+	else
 	{
 		x2 = x2 + x1;
 	}
@@ -491,7 +491,7 @@ void op_24()
 
 	LOG(("variable 4 is 0x%x\n", get_variable(4)));
 	LOG(("comparing d1 > d0 (0x%x > 0x%x)\n", get_variable(4), d0));
-	
+
 	saved_d0 = d0;
 	d1 = get_variable(4);
 	if (d1 > d0)
@@ -521,13 +521,13 @@ void op_24()
 	LOG(("loaded batch 1: d2,d3,d5 = %d, %d, %d\n", d2, d3, y1));
 
 	/* checkpoint: all okay */
-	
+
 	/* op_24_2: cb9e */
 	{
 		int tmp;
 
 		tmp = (d3 * y1) + d1;
-		if (x2 < d1 || x1 > tmp) 
+		if (x2 < d1 || x1 > tmp)
 		{
 			goto loc_cbd6;
 		}
@@ -542,7 +542,7 @@ void op_24()
 		{
 			goto loc_cbc8;
 		}
-	
+
 		x2++;
 		x1 = x1 + d3;
 		y1--;
@@ -550,7 +550,7 @@ void op_24()
 		{
 			goto loc_cbba;
 		}
-	
+
 		loc_cbc8:
 		x1 = x2;
 		d3 = get_byte(a3-5) & 0x7f;
@@ -612,7 +612,7 @@ void op_24()
 
 		loc_cb0c:
 		d3 = d3; // keep gcc happy
-	}	
+	}
 	/* all okay */
 
 	/* bcb4 */
@@ -723,7 +723,7 @@ void op_24()
 		d0 = saved_d0_2;
 		x2 = saved_d6;
 	}
-	
+
 	// all okay
 	if (d3 == 0)
 	{
@@ -892,7 +892,7 @@ void add_sprite()
 			sprites[entry_a6].index = (unsigned char)d1;
 			sprites[entry_a6].u1 = (unsigned char)d0;
 			sprites[entry_a6].next = (unsigned char)d3;
-			
+
 			p = next_pc();
 			if (next_pc() != 0)
 			{
@@ -900,7 +900,7 @@ void add_sprite()
 			}
 
 			sprites[entry_a6].frame = p;
-			sprites[entry_a6].u3 = get_byte(script_ptr + pc + 4);				
+			sprites[entry_a6].u3 = get_byte(script_ptr + pc + 4);
 			load_sprite(d1, entry_a6);
 			sprite_count++;
 			return;
@@ -926,7 +926,7 @@ void add_sprite()
 			}
 
 			sprites[entry_a6].frame = p;
-			sprites[entry_a6].u3 = get_byte(script_ptr + pc + 4);				
+			sprites[entry_a6].u3 = get_byte(script_ptr + pc + 4);
 			load_sprite(d1, entry_a6);
 			sprite_count++;
 			return;
@@ -936,7 +936,7 @@ void add_sprite()
 
 /** Checks if the sprite has reached the end of its animation
     @param entry  offset in sprite list
- 
+
     Each sprite is associated with frame number. This will check if
     the animation has reached its last frame, so the script can rewind
     the sequence
@@ -1018,7 +1018,7 @@ void op_2a()
 
 		LOG(("assigning d0, d2, d3 with %d %d %d\n", d0, d2, d3));
 		sprites[which].frame = (sprites[which].frame & 0x80) | d0;
-	
+
 		d1 = get_word(a4 + d0*2 + 6);
 		a2 = a4 + d1;
 	}
@@ -1026,7 +1026,7 @@ void op_2a()
 	{
 		/* c41c */
 		sprites[which].frame = (sprites[which].frame & 0x80) | d0;
-	
+
 		d1 = get_word(a4 + d0*2 + 6);
 		a2 = a4 + d1;
 		d2 = get_byte(a2 + 0); /* hotspot x */
@@ -1036,8 +1036,8 @@ void op_2a()
 	}
 
 	LOG(("before d3=%d after =%d\n", d3, extw(d3)));
-	d3 = extw(d3); 
-	d2 = extw(d2); 
+	d3 = extw(d3);
+	d2 = extw(d2);
 
 	d0 = get_byte(a2 + 2);
 	sprites[which].u2 = d0;
@@ -1059,7 +1059,7 @@ void op_2a()
 	LOG(("before adding y=%d, d3=%d\n", sprites[which].y, d3));
 	sprites[which].y += d3;
 	LOG(("new sprites[which].y == %d (which=%d)\n", sprites[which].y, which));
-	
+
 	/* c460 */
 	d1 = get_byte(a4 + 3);
 	d0 = d0 - d1;
@@ -1068,7 +1068,7 @@ void op_2a()
 	dummy = sprites[which].x;
 	d0 = d0 + dummy;
 	sprites[which].w4 = d0;
-	
+
 	/* c472 */
 	d0 = get_byte(a2 + 3);
 	d0 = d0 - get_byte(a4 + 4);
@@ -1114,7 +1114,7 @@ void op_2b()
 	{
 		goto loc_c29a;
 	}
-	
+
 	d3 = next_pc();
 	d0 = sprites[entry].frame & 0x7f;
 
@@ -1158,7 +1158,7 @@ void op_2b()
 	d3 = (d3 & 0x80) | d0;
 	sprites[entry].frame = d3;
 	goto loc_c252;
-	
+
 	loc_c2aa:
 	d1 = sprites[entry].index;
 
@@ -1222,7 +1222,7 @@ void op_70()
 {
 	int d0, d1, d2, d3;
 	int a2, a4, dummy, entry;
-	
+
 	d0 = get_variable(next_pc());
 	d1 = next_pc();
 	entry = d0;
@@ -1240,7 +1240,7 @@ void op_70()
 	{
 		goto loc_c106;
 	}
-	
+
 	if (d1 < 16)
 	{
 		goto loc_c188;
@@ -1298,7 +1298,7 @@ void op_70()
 	loc_c118:
 	d3 = sprites[entry].frame & 0x80;
 	d3 = d3 | d0;
-	sprites[entry].frame = d3; 
+	sprites[entry].frame = d3;
 
 	loc_mainloop:
 	d1 = sprites[entry].index;
@@ -1335,7 +1335,7 @@ void op_70()
 	d1 = get_byte(a4 + 4);
 	d1 = d1 >> 1;
 	d3 = d3 - d1;
-	
+
 	sprites[entry].w4 = d2;
 	sprites[entry].w5 = d3;
 	return;
@@ -1356,7 +1356,7 @@ void op_70()
 	a4 = get_long(a4);
 	d3 = sprites[entry].frame;
 	d1 = d3 & 0x7f;
-	
+
 	d1 = get_word(a4 + d1*2 + 6);
 	a2 = a4 + d1 + 3;
 
@@ -1400,7 +1400,7 @@ void new_task()
 
 	new_task_pc[d0] = d1;
 	task_pc[d0] = -1;
-	
+
 	d2 = next_pc();
 	if (d2 != 0)
 	{
@@ -1473,7 +1473,7 @@ void destroy_tasks()
 	}
 
 	/* 0x880 is way over the limit! */
-	assert(0); 
+	assert(0);
 	d0 = 0x880;
 
 	loc_76a2:
@@ -1550,7 +1550,7 @@ int decode(int current_task, int start_pc)
 
 		mark_opcode(opcode);
 		LOG(("(%d) task: %d: %04x 0x%02x: ", stack_ptr, current_task, pc-1, opcode));
-	
+
 		switch(opcode)
 		{
 			case 0x00:
@@ -1558,16 +1558,16 @@ int decode(int current_task, int start_pc)
 			var1 = next_pc();
 			imm16 = next_pc_word();
 			set_variable(var1, imm16);
-	
+
 			LOG(("var[%d] = 0x%x\n", var1, imm16));
 			break;
-	
+
 			case 0x01:
 			/* var1 = var2 */
 			var1 = next_pc();
 			var2 = next_pc();
 			set_variable(var1, get_variable(var2));
-	
+
 			LOG(("var[%d] = var[%d] (=0x%x)\n", var1, var2, get_variable(var2)));
 			break;
 
@@ -1588,60 +1588,60 @@ int decode(int current_task, int start_pc)
 
 			LOG(("var[%d] += 0x%x (now 0x%x)\n", var1, imm16, get_variable(var1)));
 			break;
-	
+
 			case 0x04:
 			/* call imm16 */
 			imm16 = next_pc_word();
 			push(pc);
 			pc = imm16;
-	
+
 			LOG(("call 0x%x\n", imm16));
 			break;
-	
+
 			case 0x05:
 			pc = pop();
 			LOG(("ret\n"));
 			break;
-	
+
 			case 0x06:
 			LOG(("yield\n"));
 			leave = 1;
 			break;
-	
+
 			case 0x07:
 			jmpto = next_pc_word();
 			pc = jmpto;
 			LOG(("jmp 0x%x\n", jmpto));
 			break;
-	
+
 			case 0x08:
 			new_task();
 			LOG(("\n"));
 			break;
-	
+
 			case 0x09:
 			/* dbf */
 			var1 = next_pc();
 			jmpto = next_pc_word();
-	
+
 			imm16 = get_variable(var1) - 1;
 			set_variable(var1, imm16);
-	
+
 			if (imm16 != 0)
 			{
 				pc = jmpto;
 			}
-	
+
 			LOG(("dbf var[%d], goto 0x%x(now=0x%x)\n", var1, jmpto, imm16));
 			break;
-	
+
 			case 0x0a:
 			compare_op = next_pc();
-	
+
 			/* lvalue variable */
 			var1 = next_pc();
 			imm16 = get_variable(var1);
-	
+
 			if (compare_op & 0x80)
 			{
 				/* rvalue variable */
@@ -1664,7 +1664,7 @@ int decode(int current_task, int start_pc)
 				jmpto = next_pc_word();
 				LOG(("(imm8) if var[%d] %s %d goto 0x%x (lv=%x)\n", var1, cmpopar[compare_op & 0x07], imm16_2, jmpto, imm16));
 			}
-	
+
 			switch(compare_op & 0x07)
 			{
 				case 0x00:
@@ -1673,57 +1673,57 @@ int decode(int current_task, int start_pc)
 					pc = jmpto;
 				}
 				break;
-	
+
 				case 0x01:
 				if (imm16 != imm16_2)
 				{
 					pc = jmpto;
 				}
 				break;
-	
+
 				case 0x02:
 				if (imm16 > imm16_2)
 				{
 					pc = jmpto;
 				}
 				break;
-	
+
 				case 0x03:
 				if (imm16 >= imm16_2)
 				{
 					pc = jmpto;
 				}
 				break;
-	
+
 				case 0x04:
 				if (imm16 < imm16_2)
 				{
 					pc = jmpto;
 				}
 				break;
-	
+
 				case 0x05:
 				if (imm16 <= imm16_2)
 				{
 					pc = jmpto;
 				}
 				break;
-	
+
 				default:
 				LOG(("UNKNOWN COMPARE OPERATOR! %d\n", compare_op & 0x07));
 				assert(0);
 				break;
 			}
 			break;
-	
+
 			case 0x0b:
 			/* set palette imm8 */
 			imm8 = next_pc();
-	
+
 			set_palette(imm8);
 			LOG(("set palette %d\n", imm8));
 			break;
-	
+
 			case 0x0c:
 			destroy_tasks();
 			LOG(("\n"));
@@ -1732,7 +1732,7 @@ int decode(int current_task, int start_pc)
 			case 0x0d:
 			/* select screen */
 			imm8 = next_pc();
-	
+
 			select_screen(imm8);
 			LOG(("select screen %d\n", imm8));
 			break;
@@ -1741,7 +1741,7 @@ int decode(int current_task, int start_pc)
 			/* fill screen */
 			imm8 = next_pc();
 			imm8_2 = next_pc();
-	
+
 			fill_screen(imm8, imm8_2);
 			LOG(("fill screen%d with color %d\n", imm8, imm8_2));
 			break;
@@ -1750,11 +1750,11 @@ int decode(int current_task, int start_pc)
 			/* copy screen */
 			imm8 = next_pc();
 			imm8_2 = next_pc();
-	
+
 			copy_screen(imm8_2, imm8);
 			LOG(("screen%d <= screen%d\n", imm8_2, imm8));
 			break;
-	
+
 			case 0x10:
 			imm8 = next_pc();
 			update_screen(imm8);
@@ -1767,24 +1767,24 @@ int decode(int current_task, int start_pc)
 			pc = -1;
 			LOG(("terminate task!\n"));
 			break;
-	
+
 			case 0x13:
 			var1 = next_pc();
 			var2 = next_pc();
-	
+
 			LOG(("var[%d] -= var[%d]\n", var1, var2));
 
 			set_variable(var1, get_variable(var1) - get_variable(var2));
 			break;
-	
+
 			case 0x14:
 			var1 = next_pc();
 			imm16 = next_pc_word();
 			set_variable(var1, get_variable(var1) & imm16);
-	
+
 			LOG(("var[%d] &= 0x%x\n", var1, imm16));
 			break;
-	
+
 			case 0x15:
 			var1 = next_pc();
 			imm16 = next_pc_word();
@@ -1807,7 +1807,7 @@ int decode(int current_task, int start_pc)
 			sample_channel = next_pc();
 			play_sample(sample_index, sample_volume, sample_channel);
 			break;
-	
+
 			case 0x19:
 			/* load screen imm16 */
 			imm16 = next_pc_word();
@@ -1870,7 +1870,7 @@ int decode(int current_task, int start_pc)
 				assert(0);
 			}
 			break;
-	
+
 			case 0x1a:
 			imm8 = next_pc();
 			LOG(("play audio track %d\n", imm8));
@@ -1892,7 +1892,7 @@ int decode(int current_task, int start_pc)
 			{
 				imm8 = imm8 - 1;
 				LOG(("play audio track %d\n", imm8));
-	
+
 				play_music_track(imm8, 1);
 			}
 			break;
@@ -1908,7 +1908,7 @@ int decode(int current_task, int start_pc)
 			{
 				imm16_2 = extw(next_pc());
 				jmpto = next_pc_word();
-			
+
 				if (imm16 == imm16_2)
 				{
 					pc = jmpto;
@@ -1930,7 +1930,7 @@ int decode(int current_task, int start_pc)
 			{
 				imm16_2 = next_pc_word();
 				jmpto = next_pc_word();
-			
+
 				if (imm16 == imm16_2)
 				{
 					pc = jmpto;
@@ -1940,28 +1940,28 @@ int decode(int current_task, int start_pc)
 				imm8--;
 			}
 			break;
-	
+
 			case 0x1e:
 			var1 = next_pc();
 			jmpto = next_pc_word();
-	
+
 			if (get_variable(var1) == 0)
 			{
 				pc = jmpto;
 			}
-	
+
 			LOG(("if var[%d] == 0 goto 0x%x\n", var1, jmpto));
 			break;
-	
+
 			case 0x1f:
 			var1 = next_pc();
 			jmpto = next_pc_word();
-			
+
 			if (get_variable(var1) != 0)
 			{
 				pc = jmpto;
 			}
-	
+
 			LOG(("if var[%d] != 0x00 goto 0x%x(lv=0x%x)\n", var1, jmpto, get_variable(var1)));
 			break;
 
@@ -1970,21 +1970,21 @@ int decode(int current_task, int start_pc)
 			LOG(("play death animation %d\n", imm8));
 			play_death_animation(imm8);
 			break;
-	
+
 			case 0x24:
 			op_24();
 			LOG(("\n"));
 			break;
-	
+
 			case 0x25:
 			LOG(("add sprite\n"));
 			add_sprite();
 			break;
-	
+
 			case 0x26:
 			draw_sprites();
 			break;
-	
+
 			case 0x27:
 			op_27();
 			break;
@@ -2000,7 +2000,7 @@ int decode(int current_task, int start_pc)
 			LOG(("remove sprite %d\n", imm8));
 			remove_sprite(imm8);
 			break;
-	
+
 			case 0x2a:
 			op_2a();
 			LOG(("\n"));
@@ -2106,7 +2106,7 @@ int decode(int current_task, int start_pc)
 			LOG(("d5 <<= %d\n", imm8));
 			saved_d5 <<= imm8;
 			break;
-	
+
 			case 0x40:
 			imm8 = next_pc();
 			saved_d4 = extl(saved_d4) >> imm8;
@@ -2140,7 +2140,7 @@ int decode(int current_task, int start_pc)
 			saved_d5 = get_variable(var1);
 			LOG(("saved_d5 = var[%d] (=0x%x)\n", var1, saved_d5));
 			break;
-			
+
 			case 0x4c:
 			var1 = next_pc();
 			set_variable(var1, saved_d4);
@@ -2159,7 +2159,7 @@ int decode(int current_task, int start_pc)
 			jmpto = next_pc_word();
 
 			LOG(("if d4 %s 0x%04x goto 0x%x(lv=%x)\n", cmpopar[compare_op], imm16, jmpto, saved_d4));
-			
+
 			switch(compare_op)
 			{
 				case 0x00:
@@ -2196,14 +2196,14 @@ int decode(int current_task, int start_pc)
 					pc = jmpto;
 				}
 				break;
-				                  
+
 				case 0x05:
 				if (saved_d4 <= imm16)
 				{
 					pc = jmpto;
 				}
 				break;
-				
+
 				default:
 				LOG(("UNKNOWN COMPARE OP %d\n", compare_op));
 			}
@@ -2213,7 +2213,7 @@ int decode(int current_task, int start_pc)
 			/* var%d = 0 */
 			var1 = next_pc();
 			set_variable(var1, 0);
-	
+
 			LOG(("var[%d] = 0\n", var1));
 			break;
 
@@ -2230,7 +2230,7 @@ int decode(int current_task, int start_pc)
 			break;
 
 			case 0x5e:
-			var1 = next_pc();         
+			var1 = next_pc();
 			saved_d4 = saved_d4 - get_variable(var1);
 			LOG(("d4 -= var[%d] (now 0x%x)\n", var1, saved_d4));
 			break;
@@ -2253,9 +2253,9 @@ int decode(int current_task, int start_pc)
 			var1 = next_pc();
 			imm16 = get_variable(var1);
 			jmpto = next_pc_word();
-			                          
+
 			LOG(("if d4 %s var[%d] goto 0x%x(lv=%x, rv=%x)\n", cmpopar[compare_op], var1, jmpto, saved_d4, imm16));
-			
+
 			switch(compare_op)
 			{
 				case 0x00:
@@ -2299,7 +2299,7 @@ int decode(int current_task, int start_pc)
 					pc = jmpto;
 				}
 				break;
-				
+
 				default:
 				LOG(("UNKNOWN COMPARE OP %d\n", compare_op));
 				assert(0);
@@ -2314,7 +2314,7 @@ int decode(int current_task, int start_pc)
 			jmpto = next_pc_word();
 
 			LOG(("if d5 %s var[%d] goto 0x%x(lv=%x, rv=%x)\n", cmpopar[compare_op], var1, jmpto, saved_d4, imm16));
-			
+
 			switch(compare_op)
 			{
 				case 0x00:
@@ -2358,7 +2358,7 @@ int decode(int current_task, int start_pc)
 					pc = jmpto;
 				}
 				break;
-				
+
 				default:
 				LOG(("UNKNOWN COMPARE OP %d\n", compare_op));
 				assert(0);
@@ -2395,7 +2395,7 @@ int decode(int current_task, int start_pc)
 			LOG(("if d4 == 0 goto 0x%x (d4=0x%x)\n", jmpto, saved_d4));
 			if (saved_d4 == 0)
 			{
-				pc = jmpto;	
+				pc = jmpto;
 			}
 			break;
 
@@ -2404,9 +2404,9 @@ int decode(int current_task, int start_pc)
 			LOG(("if d5 == 0 goto 0x%x (d5=0x%x)\n", jmpto, saved_d5));
 			if (saved_d5 == 0)
 			{
-				pc = jmpto;	
+				pc = jmpto;
 			}
-			break;     
+			break;
 
 			case 0x6c:
 			case 0x6d:
@@ -2414,7 +2414,7 @@ int decode(int current_task, int start_pc)
 			LOG(("if d4 != 0 goto 0x%x (d4=0x%x)\n", jmpto, saved_d4));
 			if (saved_d4 != 0)
 			{
-				pc = jmpto;	
+				pc = jmpto;
 			}
 			break;
 
@@ -2433,14 +2433,14 @@ int decode(int current_task, int start_pc)
 			op_70();
 			LOG(("\n"));
 			break;
-	
+
 			case 0x71:
 			var1 = next_pc();
 			set_variable(var1, get_variable(var1) + 1);
 			LOG(("var[%d]++\n", var1));
 			break;
-	
-			case 0x72: 
+
+			case 0x72:
 			var1 = next_pc();
 			set_variable(var1, get_variable(var1) - 1);
 			LOG(("var[%d]--\n", var1));
@@ -2462,7 +2462,7 @@ int decode(int current_task, int start_pc)
 			break;
 
 			case 0x76:
-			saved_d5--;               
+			saved_d5--;
 			LOG(("d5-- (now 0x%x)\n", saved_d5));
 			break;
 
@@ -2473,13 +2473,13 @@ int decode(int current_task, int start_pc)
 			imm16 <<= imm8;   /* fixme: asl ? */
 			set_variable(var1, imm16);
 
-			LOG(("var[%d] asl %d\n", var1, imm8)); 
+			LOG(("var[%d] asl %d\n", var1, imm8));
 			break;
 
 			case 0x78:
 			var1 = next_pc();
 			imm8 = next_pc();
-			
+
 			imm16 = get_variable(var1) / (1 << imm8);
 			set_variable(var1, imm16);
 
@@ -2496,7 +2496,7 @@ int decode(int current_task, int start_pc)
 			case 0x7e:
 			var1 = next_pc();
 			imm16 = get_variable(var1);
-			
+
 			x = get_variable(next_pc());
 			move_sprite_by(imm16, x, 0);
 
@@ -2504,9 +2504,9 @@ int decode(int current_task, int start_pc)
 			break;
 
 			case 0x7f:
-			var1 = next_pc();         
+			var1 = next_pc();
 			imm16 = get_variable(var1);
-			
+
 			y = get_variable(next_pc());
 			move_sprite_by(imm16, 0, y);
 
@@ -2523,7 +2523,7 @@ int decode(int current_task, int start_pc)
 			LOG(("using_aux = 1\n"));
 			break;
 
-			case 0x82:                
+			case 0x82:
 			imm8 = next_pc();
 			LOG(("breakpoint %d\n", imm8));
 			break;
@@ -2547,7 +2547,7 @@ int decode(int current_task, int start_pc)
 				copy_tls_to_global(dst_index, src_index, count);
 			}
 			break;
-	
+
 			case 0x87:
 			var1 = next_pc();
 			imm16 = next_pc_word();
@@ -2557,17 +2557,17 @@ int decode(int current_task, int start_pc)
 
 			case 0x88:
 			var1 = next_pc();
-			var2 = next_pc();         
+			var2 = next_pc();
 			imm16 = get_variable(var1) + get_variable(var2)*2;
 			pc = get_word(script_ptr + imm16);
 			LOG(("indirect jump to 0x%x\n", pc));
-			break; 
+			break;
 
 			case 0x89:
 			op_89();
 			LOG(("\n"));
 			break;
-	
+
 			case 0x8a:
 			var1 = next_pc(); // d0
 			imm16 = next_pc_word(); // d1
@@ -2575,15 +2575,15 @@ int decode(int current_task, int start_pc)
 
 			imm16_2 = imm16 + get_variable(var2);
 			LOG(("read byte %d from array at 0x%x into var[%d] (%04x)\n", get_variable(var2), imm16, var1, extw(get_byte(script_ptr + imm16_2))));
-			
+
 			set_variable(var1, extw(get_byte(script_ptr + imm16_2)));
 			break;
-	
+
 			case 0x8b:
 			var1 = next_pc();
 			imm16 = get_variable(var1);
 			set_palette(imm16);
-	
+
 			LOG(("set palette var[%d] (%d)\n", var1, imm16));
 			break;
 

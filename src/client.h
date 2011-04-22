@@ -30,6 +30,7 @@ typedef struct
 	int fullscreen;
 	int speed_throttle;
 	int filtered;
+    char *iso_prefix;
 } client_static_t;
 
 extern client_static_t cls;

@@ -32,7 +32,7 @@ typedef struct file_offset_s
 	int size;
 } file_offset_t;
 
-static file_offset_t file_offsets[] = 
+static file_offset_t file_offsets[] =
 {
 	{"END1.BIN", 0x510800, 0x69800},
 	{"END2.BIN", 0x57a000, 0x69800},
@@ -101,7 +101,7 @@ int read_file(const char *filename, void *out)
 {
 	int size, offset;
 	char archive[256];
-	
+
 	if (get_file_offset(filename, &offset, &size) < 0)
 	{
 		/* not found */
@@ -111,7 +111,14 @@ int read_file(const char *filename, void *out)
 
 	if (cls.use_iso)
 	{
-		strcpy(archive, ISO_FILENAME);
+        if (cls.iso_prefix != NULL)
+        {
+            snprintf(archive, 256, "%s.iso", cls.iso_prefix);
+        }
+        else
+        {
+            strcpy(archive, ISO_FILENAME);
+        }
 	}
 	else
 	{

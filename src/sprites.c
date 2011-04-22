@@ -198,7 +198,7 @@ void reset_sprite_list()
 	int d0;
 
 	memset(&sprites, 0, sizeof(sprites));
-	                    
+
 	/* cc5a */
 	first_sprite = 1;
 	sprite_count = 0;
@@ -209,7 +209,7 @@ void reset_sprite_list()
 	{
 		sprites[d0].next = d0 + 1;
 	}
-	    
+
 	/* note: is it 64 or 63 */
 	sprites[63].next = 0;
 }
@@ -313,7 +313,7 @@ void remove_sprite(int var)
 }
 
 /** Quickloads sprites state from file descriptor
-    @param fp 
+    @param fp
     @returns zero on success
 */
 int quickload_sprites(FILE *fp)
@@ -408,7 +408,7 @@ void render_sprite(int list_entry)
 	a2 = a3 + d1 + 4;
 	d6 = get_word(a2);
 	a2 += 2;
-	
+
 	for (color = 0; color < 16; color++)
 	{
 		if ((d6 & (1 << color)) == 0)
@@ -421,7 +421,7 @@ void render_sprite(int list_entry)
 		{
 			goto sprite_mirrored;
 		}
-	
+
 		/* d2 is color */
 		loc_d91e:
 		offset = get_word(a2); /* relative offset */
@@ -432,7 +432,7 @@ void render_sprite(int list_entry)
 		sy = y + dy;
 		count = get_byte(a2++) + 1;
 		fill_line(count, sx, sy, color);
-	
+
 		loc_d93c:
 		d7 = get_byte(a2++);
 		if (d7 == 0x99)
@@ -440,20 +440,20 @@ void render_sprite(int list_entry)
 			/* repeat using the same color! */
 			goto loc_d91e;
 		}
-	
+
 		if (d7 == 0xaa)
 		{
 			continue;
 		}
-	 
+
 		/* d94a */
 		/* d7: two signed nibbles */
 		d4 = d7;
-	
+
 		d7 = extn((unsigned char)(d7 & 0x0f)); /* delta-count */
 		dx = extn((unsigned char)(d4 >> 4));
 		count = count + d7 - dx;
-	
+
 		sy = sy + 1;
 		sx = sx + dx;
 		fill_line(count, sx, sy, color);
@@ -465,35 +465,35 @@ void render_sprite(int list_entry)
 		loc_d9b4:
 		offset = get_word(a2);
 		a2 += 2;
-	
+
 		dx = offset % 304;
 		dy = offset / 304;
 		sx = x - dx;
 		sy = y + dy;
-	
+
 		count = get_byte(a2++) + 1;
 		fill_line_reversed(count, sx, sy, color);
-	
+
 		loc_d9e2:
 		d7 = get_byte(a2++);
 		if (d7 == 0x99)
 		{
 			goto loc_d9b4;
 		}
-	
+
 		if (d7 == 0xaa)
 		{
 			continue;
 		}
-	
+
 		d4 = d7;
 		d7 = extn((unsigned char)(d7 & 0x0f));
 		dx = extn((unsigned char)(d4 >> 4));
 		count = count + d7 - dx;
-	
+
 		sy = sy + 1;
 		sx = sx - dx;
-	
+
 		fill_line_reversed(count, sx, sy, color);
 		goto loc_d9e2;
 	}

@@ -217,11 +217,11 @@ static void unpack_animation_delta(int offset, unsigned char *out)
 	goto loc_d05e;
 }
 
-/** 
+/**
 
     This is probably the most interesting compression ever developed. The
     color_mask passed represents which colors (out of 16) have changed in
-    this frame; each color is associated with a mask of what types of 
+    this frame; each color is associated with a mask of what types of
     brushes were used to draw these colors. Options are delta-horz-line,
     rectangle, horizontal line, vertical line, set of pixels, 3x3, 4x4
     and 5x5 patterns.
@@ -243,9 +243,9 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 			/* color not used here */
 			continue;
 		}
-		
+
 		/* each bit is a different drawing pattern, 1x1 etc */
-		bitmask = get_byte(a1++); 
+		bitmask = get_byte(a1++);
 		if ((bitmask & 1))
 		{
 			/* start drawing a line, and then continue from there
@@ -253,17 +253,17 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 			 */
 			loc_d308:
 			offset = get_word(a1);
-			a1 += 2;     	
+			a1 += 2;
 			count = get_byte(a1++);
 			if (count == 0xff)
 			{
 				/* two bytes */
 				count = get_byte(a1++) + 0xff;
 			}
-		
+
 			count++;
-			fillline(out, offset, count, color); 
-		
+			fillline(out, offset, count, color);
+
 			loc_d324:
 			if (get_byte(a2) == 9 && get_byte(a3) == 9)
 			{
@@ -271,25 +271,25 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				a3++;
 				goto loc_d308;
 			}
-		
+
 			if (get_byte(a2) == 8 && get_byte(a3) == 8)
 			{
 				a2++;
 				a3++;
 				goto loc_d36e;
 			}
-		
+
 			offset += 304; /* next line */
 			d4 = extn(get_byte(a2++));
 			offset += d4;
 			count -= d4;
 			d4 = extn(get_byte(a3++));
 			count += d4;
-	
-			fillline(out, offset, count, color); 
+
+			fillline(out, offset, count, color);
 			goto loc_d324;
 		}
-	
+
 		loc_d36e:
 		if (bitmask & 0x10)
 		{
@@ -301,26 +301,26 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				{
 					break;
 				}
-		
+
 				offset = (offset << 8) | get_byte(a1++);
-		
+
 				/* highnibble=width-2, lownibble=height-1 */
 				count = get_byte(a1++);
 				d4 = count & 0x0f;
 				count = (count >> 4) + 2;
 				d4++;
-	
+
 				LOG(("block offset=%d w=%d h=%d color=%d\n", offset, count, d4, color));
-	
+
 				do
 				{
-					fillline(out, offset, count, color); 
+					fillline(out, offset, count, color);
 					offset += 304;
 					d4--;
 				} while (d4 >= 0);
 			}
 		}
-	
+
 		if (bitmask & 0x4)
 		{
 			/* horizontal line */
@@ -331,15 +331,15 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				{
 					break;
 				}
-	
+
 				offset = (offset << 8) | get_byte(a1++);
 				count = get_byte(a1++) + 1;
-	
+
 				LOG(("horizontal line offset=%d count=%d\n", offset, count));
-				fillline(out, offset, count, color); 
+				fillline(out, offset, count, color);
 			}
 		}
-	
+
 		if (bitmask & 0x8)
 		{
 			/* vertical line */
@@ -350,12 +350,12 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				{
 					break;
 				}
-		
+
 				offset = (offset << 8) | get_byte(a1++);
 				count = get_byte(a1++);
-	
+
 				LOG(("vertical line offset=%d count=%d\n", offset, count));
-	
+
 				while (count >= 0)
 				{
 					draw_pixel(out, offset, color);
@@ -364,7 +364,7 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				}
 			}
 		}
-	
+
 		if (bitmask & 0x80)
 		{
 			/* 5x5 pattern (24 bits, center pixel always set) */
@@ -377,7 +377,7 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				{
 					break;
 				}
-			
+
 				offset = (offset << 8) | get_byte(a1++);
 				d4 = get_word(a1) << 8;
 				d4 |= get_byte(a1+2);
@@ -408,24 +408,24 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				}
 			}
 		}
-	
+
 		if (bitmask & 0x40)
 		{
 			while (1)
-			{	
+			{
 				/* 4x4 pattern (16 bits) */
 				int cnt;
-	
+
 				offset = get_byte(a1++);
 				if (offset == 0xff)
 				{
 					break;
 				}
-			
+
 				offset = (offset << 8) | get_byte(a1++);
 				d4 = get_word(a1);
 				a1 += 2;
-			
+
 				cnt = 0x0f;
 				while (cnt >= 0)
 				{
@@ -433,19 +433,19 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 					{
 						draw_pixel(out, offset, color);
 					}
-			
+
 					offset++;
-	
+
 					if (cnt == 0x0c || cnt == 0x08 || cnt == 0x04)
 					{
 						offset = offset + 300;
 					}
-	
+
 					cnt--;
 				}
 			}
 		}
-	
+
 		if (bitmask & 0x20)
 		{
 			while (1)
@@ -458,11 +458,11 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				{
 					break;
 				}
-			
+
 				offset = (offset << 8) | get_byte(a1++);
 
 				d4 = get_byte(a1++);
-				
+
 				cnt = 0x07;
 				while (cnt >= 0)
 				{
@@ -470,9 +470,9 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 					{
 						draw_pixel(out, offset, color);
 					}
-			
+
 					offset++;
-	
+
 					if (cnt == 0x05 || cnt == 0x03)
 					{
 						offset = offset + 301;
@@ -488,7 +488,7 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				}
 			}
 		}
-		
+
 		if ((bitmask & 0x02))
 		{
 			/* collection of pixels */
@@ -499,9 +499,9 @@ static void anim_interesting(int a1, int a2, int a3, unsigned short color_mask)
 				{
 					break;
 				}
-		
+
 				offset = (offset << 8) | get_byte(a1++);
-	
+
 				draw_pixel(out, offset, color);
 			}
 		}
@@ -579,7 +579,7 @@ int play_sequence(int offset, int fps)
 		goto loc_a2_ne_2;
 	}
 
-	/* else d0f2 */	
+	/* else d0f2 */
 	d6 = 3;
 	a2 = get_long(a5);
 	a5 += 4;
@@ -595,7 +595,7 @@ int play_sequence(int offset, int fps)
 	a3 = get_long(a5);
 	a5 += 4;
 	decompress_backdrop(screen0, a2, a3);
-	
+
 	d0 = 0;
 	d1 = 3;
 	flip_screens(d0);
@@ -623,7 +623,7 @@ int play_sequence(int offset, int fps)
 	/* decompress TWO screens */
 	d6 = 2;
 	decompress_backdrop(screen0, get_long(a5), get_long(a5+4));
-	decompress_backdrop(screen2, get_long(a5+8), get_long(a5+12));	
+	decompress_backdrop(screen2, get_long(a5+8), get_long(a5+12));
 	a5 += 16;
 
 	loc_d15e:
@@ -743,7 +743,7 @@ int play_sequence(int offset, int fps)
 		a3 = a0 + d4;
 		anim_interesting(a1, a2, a3, (unsigned short)d3);
 	}
-	
+
 	/* a4 = screen0 */
 	if (d6 != 3)
 	{

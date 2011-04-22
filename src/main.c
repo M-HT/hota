@@ -947,6 +947,7 @@ static struct option options[] =
 	{"scale", required_argument, 0, 's'},
 	{"iso", no_argument, 0, 'i'},
 	{"fastest", no_argument, &fastest_flag, 1},
+	{"iso-prefix", required_argument, 0, 'e'},
 	{0, no_argument, 0, 0}
 };
 
@@ -963,6 +964,7 @@ int main(int argc, char **argv)
 	cls.speed_throttle = 0;
 	cls.paused = 0;
 	cls.nosound = 0;
+    cls.iso_prefix = NULL;
 
 	options_index = 0;
 	while (1)
@@ -1014,6 +1016,10 @@ int main(int argc, char **argv)
 
 			case 'n':
 			cls.nosound = 1;
+			break;
+
+			case 'e':
+			cls.iso_prefix = strdup(optarg);
 			break;
 
 			case '?':
