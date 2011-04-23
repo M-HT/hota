@@ -25,6 +25,7 @@
 #include "client.h"
 #include "scale2x.h"
 #include "scale3x.h"
+#include "scale800x480.h"
 
 static int fullscreen = 0;
 static int scroll_reg = 0;
@@ -88,7 +89,7 @@ void render1x(char *src)
 			memcpy((char *)screen->pixels + (y-p)*screen->pitch, src + 304*(y-192), 304);
 		}
 	}
-	else 
+	else
 	{
 		/* scroll from top */
 		p = scroll_reg;
@@ -123,7 +124,7 @@ void render2x(char *src)
 {
 	int x, y;
 	unsigned char wide[304*2];
-        
+
 	for (y=0; y<192; y++)
 	{
 		char *srcp;
@@ -149,7 +150,7 @@ void render3x(char *src)
 {
 	int x, y;
 	unsigned char wide[304*3];
-        
+
 	for (y=0; y<192; y++)
 	{
 		char *srcp;
@@ -168,6 +169,66 @@ void render3x(char *src)
 		memcpy((char *)screen->pixels + (y*3+1)*screen->pitch, wide, 304*3);
 		memcpy((char *)screen->pixels + (y*3+2)*screen->pitch, wide, 304*3);
 	}
+}
+
+void render800x480(char *src)
+{
+    char *dst;
+	int x, y;
+    unsigned int delta, num_pixels;
+
+    dst = (char *)screen->pixels;
+
+    delta = (50 << 24) / 19; // = 800 / 304
+	for (y=0; y<192; y+=2)
+	{
+        num_pixels = 1 << 23; // = 0.5
+        for (x=0; x<304; x++)
+        {
+            num_pixels += delta;
+
+            if ((num_pixels >> 24) == 2)
+            {
+                num_pixels -= (2 << 24);
+                dst[0] = dst[1] = dst[800] = dst[801] = src[x];
+                dst += 2;
+            }
+            else
+            {
+                num_pixels -= (3 << 24);
+                dst[0] = dst[1] = dst[2] = dst[800] = dst[801] = dst[802] = src[x];
+                dst += 3;
+            }
+        }
+        src += 304;
+        dst += 800;
+
+        num_pixels = 1 << 23; // = 0.5
+        for (x=0; x<304; x++)
+        {
+            num_pixels += delta;
+
+            if ((num_pixels >> 24) == 2)
+            {
+                num_pixels -= (2 << 24);
+                dst[0] = dst[1] = dst[800] = dst[801] = dst[1600] = dst[1601] = src[x];
+                dst += 2;
+            }
+            else
+            {
+                num_pixels -= (3 << 24);
+                dst[0] = dst[1] = dst[2] = dst[800] = dst[801] = dst[802] = dst[1600] = dst[1601] = dst[1602] = src[x];
+                dst += 3;
+            }
+        }
+        src += 304;
+        dst += 2*800;
+    }
+}
+
+void render800x480_scaled(char *src)
+{
+	scale800x480((Uint8 *)screen->pixels, (Uint8 *)src);
 }
 
 /** Renders a virtual screen
@@ -204,17 +265,32 @@ void render(char *src)
 		case 3:
 		if (cls.filtered == 0)
 		{
-			render3x(src);
+            if (cls.pandora)
+            {
+                render800x480(src);
+            }
+            else
+            {
+                render3x(src);
+            }
 		}
 		else
 		{
-			render3x_scaled(src);
+            if (cls.pandora)
+            {
+                render800x480_scaled(src);
+            }
+            else
+            {
+                render3x_scaled(src);
+            }
 		}
 		break;
 	}
 
 	scroll_reg = 0;
 	SDL_UnlockSurface(screen);
+	SDL_Flip(screen);
 }
 
 /** Module initializer
@@ -225,7 +301,7 @@ int render_init()
 	return 0;
 }
 
-/** Converts a Sega CD RGB444 to RGB888 
+/** Converts a Sega CD RGB444 to RGB888
     @param rgb12   pointer to 16x2 of palette data
 */
 void set_palette_rgb12(unsigned char *rgb12)
@@ -266,7 +342,7 @@ void set_palette(int which)
 void toggle_fullscreen()
 {
 	/* hack, fullscreen not supported at scale==3 */
-	if (cls.scale == 3)
+	if ((cls.scale == 3) && !cls.pandora)
 	{
 		return;
 	}
@@ -279,7 +355,14 @@ void toggle_fullscreen()
 	{
 		LOG(("create SDL surface of 304x192x8\n"));
 
-		screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
+        if (cls.pandora && (cls.scale == 3))
+        {
+            screen = SDL_SetVideoMode(800, 480, 8, SDL_SWSURFACE);
+        }
+        else
+        {
+            screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
+        }
 		SDL_SetColors(screen, palette, 0, 256);
 		SDL_ShowCursor(1);
 	}
@@ -292,7 +375,14 @@ void toggle_fullscreen()
 
 		LOG(("setting fullscreen mode %dx%dx8\n", w, h));
 
-		screen = SDL_SetVideoMode(w, h, 8, SDL_SWSURFACE|SDL_HWSURFACE|SDL_FULLSCREEN);
+        if (cls.pandora && (cls.scale == 3))
+        {
+            screen = SDL_SetVideoMode(800, 480, 8, SDL_DOUBLEBUF|SDL_HWSURFACE|SDL_FULLSCREEN);
+        }
+        else
+        {
+            screen = SDL_SetVideoMode(w, h, 8, SDL_DOUBLEBUF|SDL_HWSURFACE|SDL_FULLSCREEN);
+        }
 
 		SDL_SetColors(screen, palette, 0, 256);
 		SDL_ShowCursor(0);
@@ -301,8 +391,15 @@ void toggle_fullscreen()
 
 int render_create_surface()
 {
-	screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
-	if (screen == NULL) 
+    if (cls.pandora && (cls.scale == 3))
+    {
+        screen = SDL_SetVideoMode(800, 480, 8, SDL_SWSURFACE);
+    }
+    else
+    {
+        screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
+    }
+	if (screen == NULL)
 	{
 		return -1;
 	}

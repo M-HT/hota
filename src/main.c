@@ -484,6 +484,27 @@ void check_events()
 				key_c = 0;
 				break;
 	
+				case SDLK_PAGEDOWN:
+                if (cls.pandora)
+                {
+                    key_a = 0;
+                }
+				break;
+
+				case SDLK_END:
+                if (cls.pandora)
+                {
+                    key_b = 0;
+                }
+				break;
+
+				case SDLK_HOME:
+                if (cls.pandora)
+                {
+                    key_c = 0;
+                }
+				break;
+
 				case SDLK_q:
 				key_a = 0;
 				key_reset_record = 0;
@@ -561,6 +582,27 @@ void check_events()
 				key_c = 1;
 				break;
 	
+				case SDLK_PAGEDOWN:
+                if (cls.pandora)
+                {
+                    key_a = 1;
+                }
+				break;
+
+				case SDLK_END:
+                if (cls.pandora)
+                {
+                    key_b = 1;
+                }
+				break;
+
+				case SDLK_HOME:
+                if (cls.pandora)
+                {
+                    key_c = 1;
+                }
+				break;
+
 				#ifdef ENABLE_DEBUG
 				case SDLK_g:
 				debug_flag ^= 1;
@@ -578,7 +620,10 @@ void check_events()
 				case SDLK_RETURN:
 				if (event.key.keysym.mod & KMOD_ALT)
 				{
-					toggle_fullscreen();
+                    if (!cls.pandora)
+                    {
+                        toggle_fullscreen();
+                    }
 				}
 				break;
 	
@@ -947,6 +992,7 @@ static struct option options[] =
 	{"scale", required_argument, 0, 's'},
 	{"iso", no_argument, 0, 'i'},
 	{"fastest", no_argument, &fastest_flag, 1},
+	{"pandora", no_argument, 0, 'p'},
 	{"iso-prefix", required_argument, 0, 'e'},
 	{0, no_argument, 0, 0}
 };
@@ -964,6 +1010,7 @@ int main(int argc, char **argv)
 	cls.speed_throttle = 0;
 	cls.paused = 0;
 	cls.nosound = 0;
+	cls.pandora = 0;
     cls.iso_prefix = NULL;
 
 	options_index = 0;
@@ -1016,6 +1063,10 @@ int main(int argc, char **argv)
 
 			case 'n':
 			cls.nosound = 1;
+			break;
+
+			case 'p':
+			cls.pandora = 1;
 			break;
 
 			case 'e':

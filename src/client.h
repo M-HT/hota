@@ -30,6 +30,7 @@ typedef struct
 	int fullscreen;
 	int speed_throttle;
 	int filtered;
+	int pandora;
     char *iso_prefix;
 } client_static_t;
 
