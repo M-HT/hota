@@ -40,7 +40,7 @@
 #include "animation.h"
 #include "getopt.h"
 
-static char *VERSION = "1.2.2";
+static char *VERSION = "1.2.4";
 
 static char *QUICKSAVE_FILENAME = "quicksave";
 static char *RECORDED_KEYS_FILENAME = "recorded-keys";
@@ -52,7 +52,7 @@ typedef struct anm_file_s
 	int offset;
 } anm_file_t;
 
-static anm_file_t anm_files[] = 
+static anm_file_t anm_files[] =
 {
 	{31, "INTRO1.BIN", 0},
 	{32, "INTRO2.BIN", 0},
@@ -144,7 +144,7 @@ static int initialize()
 
 	if (cls.nosound == 0)
 	{
-		if (Mix_OpenAudio(44100, AUDIO_S16, 2, 4096) < 0) 
+		if (Mix_OpenAudio(44100, AUDIO_S16, 2, 4096) < 0)
 		{
 			panic("Mix_OpenAudio failed\n");
 		}
@@ -164,7 +164,7 @@ static int initialize()
 	}
 
 	screen_init();
-	
+
 	vm_reset();
 	set_variable(227, 1);
 
@@ -187,7 +187,7 @@ void load_room_screen(int room, int index)
 
 	LOG(("loading room screen %d from room file %d\n", index - 1, room));
 
-	unpack_room(scratchpad, index - 1);           
+	unpack_room(scratchpad, index - 1);
 
 	/* convert 4bpp -> 8bpp */
 	pixels = (unsigned char *) get_screen_ptr(0);
@@ -242,7 +242,7 @@ void read_keys_from_record()
 
 /** Adds a single key to the record file
 
-    Adds a key to the cache array of recorded keys; if the array 
+    Adds a key to the cache array of recorded keys; if the array
     is full, it will force flushing
 */
 void add_keys_to_record()
@@ -358,7 +358,7 @@ void quickload()
 	for (j=0; j<MAX_TASKS; j++)
 	{
 		set_aux_bank(j);
-		for (i=0; i<32; i++)	
+		for (i=0; i<32; i++)
 		{
 			set_variable(i, fgetw(fp));
 		}
@@ -383,8 +383,8 @@ void quickload()
 /** Creates a quicksave file
 
     Quicksave file includes all that is required so later on a user can
-    use the quickload and be provided with the exact same game state. 
-*/    
+    use the quickload and be provided with the exact same game state.
+*/
 void quicksave()
 {
 	int i, j;
@@ -411,7 +411,7 @@ void quicksave()
 	for (j=0; j<MAX_TASKS; j++)
 	{
 		set_aux_bank(j);
-		for (i=0; i<32; i++)	
+		for (i=0; i<32; i++)
 		{
 			fputw(get_variable(i), fp);
 		}
@@ -448,7 +448,7 @@ void check_events()
 
 	while (SDL_PollEvent(&event))
 	{
-	        switch (event.type) 
+	        switch (event.type)
 		{
 			case SDL_KEYUP:
 			switch(event.key.keysym.sym)
@@ -456,34 +456,34 @@ void check_events()
 				case SDLK_RIGHT:
 				key_right = 0;
 				break;
-	
+
 				case SDLK_LEFT:
 				key_left = 0;
 				break;
-	
+
 				case SDLK_UP:
 				key_up = 0;
 				break;
-	
+
 				case SDLK_DOWN:
 				key_down = 0;
 				break;
-	
+
 				case SDLK_z:
 				case SDLK_a:
 				key_a = 0;
 				break;
-	
+
 				case SDLK_x:
 				case SDLK_s:
 				key_b = 0;
 				break;
-	
+
 				case SDLK_c:
 				case SDLK_d:
 				key_c = 0;
 				break;
-	
+
 				case SDLK_PAGEDOWN:
                 if (cls.pandora)
                 {
@@ -509,17 +509,17 @@ void check_events()
 				key_a = 0;
 				key_reset_record = 0;
 				break;
-	
+
 				case SDLK_SPACE:
 				speed_throttle = 0;
 				break;
-	
+
 				default:
 				/* keep -Wall happy */
 				break;
 			}
 			break;
-	
+
 	        	case SDL_KEYDOWN:
 			switch(event.key.keysym.sym)
 			{
@@ -536,52 +536,52 @@ void check_events()
 				case SDLK_9:
 				{
 					int tmp = event.key.keysym.sym - SDLK_1 + 1;
-	
+
 					if (event.key.keysym.mod & KMOD_SHIFT)
 					{
 						tmp = tmp + 10;
 					}
-	
+
 					sprites[tmp].u1 ^= 0x80;
 				}
 				break;
 				#endif
-	
+
 				case SDLK_ESCAPE:
 				cls.quit = 1;
 				break;
-	
+
 				case SDLK_RIGHT:
 				key_right = 1;
 				break;
-				
+
 				case SDLK_LEFT:
 				key_left = 1;
 				break;
-	
+
 				case SDLK_UP:
 				key_up = 1;
 				break;
-				
+
 				case SDLK_DOWN:
 				key_down = 1;
 				break;
-	
+
 				case SDLK_z:
 				case SDLK_a:
 				key_a = 1;
 				break;
-	
+
 				case SDLK_x:
 				case SDLK_s:
 				key_b = 1;
 				break;
-	
+
 				case SDLK_c:
 				case SDLK_d:
 				key_c = 1;
 				break;
-	
+
 				case SDLK_PAGEDOWN:
                 if (cls.pandora)
                 {
@@ -608,15 +608,15 @@ void check_events()
 				debug_flag ^= 1;
 				break;
 				#endif
-	
+
 				case SDLK_F5:
 				quicksave();
 				break;
-	
+
 				case SDLK_F7:
 				quickload();
 				break;
-	
+
 				case SDLK_RETURN:
 				if (event.key.keysym.mod & KMOD_ALT)
 				{
@@ -626,22 +626,22 @@ void check_events()
                     }
 				}
 				break;
-	
+
 				case SDLK_q:
 				key_a = 1;
 				key_reset_record = 1;
 				break;
-	
+
 				case SDLK_SPACE:
 				speed_throttle = 1;
 				break;
-	
+
 				default:
 				/* keep -Wall happy */
 				break;
 			}
 			break;
-	
+
 			case SDL_QUIT:
 			leave_game();
 			break;
@@ -704,7 +704,7 @@ void init_tasks()
     @param skippable  skip to next animation if key pressed (otherwise breaks)
     @returns zero on completion of all videos, 1 if skipped, negative on error
 
-    Note that cls.quit might be true; in that case, return value of one will 
+    Note that cls.quit might be true; in that case, return value of one will
     be returned
 */
 int play_anm(anm_file_t *anm, int n, int skippable)
@@ -741,7 +741,7 @@ int play_anm(anm_file_t *anm, int n, int skippable)
 
 /** Plays the introduction to the game
 
-    Introduction is split into 4 files, since sega-cd was limited with 
+    Introduction is split into 4 files, since sega-cd was limited with
     512 KB of ram, and video is loaded into memory before it can be
     played. also, each such sequence comes with it's own audio track
 */
@@ -797,7 +797,7 @@ static void run()
 		{
 			add_keys_to_record();
 		}
-	
+
 		LOG(("*new frame*\n"));
 
 		for (i=0; i<MAX_TASKS; i++)
@@ -812,11 +812,11 @@ static void run()
 			{
 				continue;
 			}
-			
+
 			if (d0 == -2)
 			{
 				d0 = -1;
-			}		
+			}
 
 			task_pc[i] = d0;
 			new_task_pc[i] = -1;
@@ -856,7 +856,7 @@ static void animation_test()
 	play_anm(anm_files, files, 1);
 }
 
-/** Runs the sprite-test 
+/** Runs the sprite-test
 
     Interactively show the sprites in this 'room' file. Use the --room
     parameter to view sprites in other rooms
@@ -957,7 +957,7 @@ void sprite_test()
 
 static void help()
 {
-	printf("Heart of The Alien Redux %s", VERSION);
+	printf("Heart of The Alien Redux %s\n", VERSION);
 	puts("USAGE:");
 	#ifdef ENABLE_DEBUG
 	puts("\t--debug        turn on debugging");
@@ -979,7 +979,7 @@ static void help()
 static struct option options[] =
 {
 	{"debug", no_argument, 0, 'd'},
-	{"room", required_argument, 0, 'r'}, 
+	{"room", required_argument, 0, 'r'},
 	{"sprite-test", no_argument, &test_flag, 1},
 	{"intro-test", no_argument, &test_flag, 2},
 	{"help", no_argument, 0, 'h'},
@@ -1021,7 +1021,7 @@ int main(int argc, char **argv)
 		{
 			/* no more options */
 			break;
-		}            
+		}
 
 		switch(c)
 		{
