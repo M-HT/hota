@@ -83,26 +83,26 @@ static void play_music_track_mp3(int track, int loop)
 
 	stop_music_mp3();
 
-    if (cls.iso_prefix != NULL)
-    {
-        snprintf(filename, 256, "%s %02d.ogg", cls.iso_prefix, track + 1);
-    }
-    else
-    {
-        sprintf(filename, ISO_PREFIX "%02d.ogg", track + 1);
-    }
-    // if ogg file doesn't exist use mp3
-    if (access(filename, R_OK))
-    {
-        if (cls.iso_prefix != NULL)
-        {
-            snprintf(filename, 256, "%s %02d.mp3", cls.iso_prefix, track + 1);
-        }
-        else
-        {
-            sprintf(filename, ISO_PREFIX "%02d.mp3", track + 1);
-        }
-    }
+	if (cls.iso_prefix != NULL)
+	{
+		snprintf(filename, 256, "%s %02d.ogg", cls.iso_prefix, track + 1);
+	}
+	else
+	{
+		sprintf(filename, ISO_PREFIX "%02d.ogg", track + 1);
+	}
+	// if ogg file doesn't exist use mp3
+	if (access(filename, R_OK))
+	{
+		if (cls.iso_prefix != NULL)
+		{
+			snprintf(filename, 256, "%s %02d.mp3", cls.iso_prefix, track + 1);
+		}
+		else
+		{
+			sprintf(filename, ISO_PREFIX "%02d.mp3", track + 1);
+		}
+	}
 	LOG(("playing mp3 %s\n", filename));
 
 	current_track = Mix_LoadMUS(filename);

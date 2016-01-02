@@ -1,9 +1,9 @@
 all: alien
 
-CC=arm-none-linux-gnueabi-gcc
+CC=pandora-gcc
 SDL_CFLAGS = -I$(PNDSDK)/usr/include/SDL
 SDL_LIBS = -L$(PNDSDK)/usr/lib
-CFLAGS=-DNDEBUG -Wall $(SDL_CFLAGS) -DPANDORA -Os -pipe -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp -ftree-vectorize -ffast-math -fsingle-precision-constant
+CFLAGS=-DNDEBUG -Wall $(SDL_CFLAGS) -DPANDORA -O2 -pipe -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp -ftree-vectorize -ffast-math -fsingle-precision-constant
 OBJS=\
 	client.o common.o vm.o      sprites.o decode.o   animation.o   \
 	rooms.o  render.o main.o    music.o   debug.o    lzss.o        \

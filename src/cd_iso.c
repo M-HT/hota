@@ -111,14 +111,14 @@ int read_file(const char *filename, void *out)
 
 	if (cls.use_iso)
 	{
-        if (cls.iso_prefix != NULL)
-        {
-            snprintf(archive, 256, "%s.iso", cls.iso_prefix);
-        }
-        else
-        {
-            strcpy(archive, ISO_FILENAME);
-        }
+		if (cls.iso_prefix != NULL)
+		{
+			snprintf(archive, 256, "%s.iso", cls.iso_prefix);
+		}
+		else
+		{
+			strcpy(archive, ISO_FILENAME);
+		}
 	}
 	else
 	{

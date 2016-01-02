@@ -78,7 +78,7 @@ void render1x(char *src)
 	else if (scroll_reg < 0)
 	{
 		/* scroll from bottom */
-		p = 1 - scroll_reg;
+		p = - scroll_reg;
 		for (y=p; y<192; y++)
 		{
 			memcpy((char *)screen->pixels + (y-p)*screen->pitch, src + 304*y, 304);
@@ -86,7 +86,7 @@ void render1x(char *src)
 
 		for (y=192; y<192+p; y++)
 		{
-			memcpy((char *)screen->pixels + (y-p)*screen->pitch, src + 304*(y-192), 304);
+			memcpy((char *)screen->pixels + (y-p)*screen->pitch, src + 304*191, 304);
 		}
 	}
 	else
@@ -95,7 +95,7 @@ void render1x(char *src)
 		p = scroll_reg;
 		for (y=0; y<p; y++)
 		{
-			memcpy((char *)screen->pixels + y*screen->pitch, src + 304*(191-p+y), 304);
+			memcpy((char *)screen->pixels + y*screen->pitch, src, 304);
 		}
 
 		for (y=p; y<192; y++)
@@ -105,16 +105,111 @@ void render1x(char *src)
 	}
 }
 
+static void normal2x_line(Uint8 *dstpix, int dstpitch, char *src, int height)
+{
+	int x, y;
+	unsigned char wide[304*2];
+	unsigned char *widep;
+
+	widep = wide;
+	for (x=0; x<304; x++)
+	{
+		*widep++ = *src;
+		*widep++ = *src++;
+	}
+
+	for (y=0; y<height; y++)
+	{
+		memcpy(dstpix + y*2*dstpitch, wide, 304*2);
+		memcpy(dstpix + (y*2+1)*dstpitch, wide, 304*2);
+	}
+}
+
+static void normal3x_line(Uint8 *dstpix, int dstpitch, char *src, int height)
+{
+	int x, y;
+	unsigned char wide[304*3];
+	unsigned char *widep;
+
+	widep = wide;
+	for (x=0; x<304; x++)
+	{
+		*widep++ = *src;
+		*widep++ = *src;
+		*widep++ = *src++;
+	}
+
+	for (y=0; y<height; y++)
+	{
+		memcpy(dstpix + y*3*dstpitch, wide, 304*3);
+		memcpy(dstpix + (y*3+1)*dstpitch, wide, 304*3);
+		memcpy(dstpix + (y*3+2)*dstpitch, wide, 304*3);
+	}
+}
+
+static void normal800x480_line(Uint8 *dstpix, int dstpitch, char *src, int dstheight)
+{
+	int x, y;
+	unsigned char wide[800];
+	unsigned char *widep;
+	unsigned int delta, num_pixels;
+
+	delta = (12 << 24) / 19; // = (800-2*304) / 304
+	widep = wide;
+
+	num_pixels = 1 << 23; // = 0.5
+	for (x=0; x<304; x++)
+	{
+		num_pixels += delta;
+		if (num_pixels & (1 << 24))
+		{
+			num_pixels -= (1 << 24);
+			*widep++ = *src;
+		}
+		*widep++ = *src;
+		*widep++ = *src++;
+	}
+
+	for (y=0; y<dstheight; y++)
+	{
+		memcpy(dstpix + y*dstpitch, wide, 800);
+	}
+}
+
 /* advmame2x scaler */
 void render2x_scaled(char *src)
 {
-	scale2x(screen, (Uint8 *)src, 304, 304, 192);
+	if (scroll_reg >= 0)
+	{
+		if (scroll_reg != 0)
+		{
+			normal2x_line((Uint8*)screen->pixels, screen->pitch, src, scroll_reg);
+		}
+		scale2x(((Uint8*)screen->pixels) + 2*scroll_reg*screen->pitch, screen->pitch, (Uint8 *)src, 304, 304, 192-scroll_reg);
+	}
+	else
+	{
+		scale2x((Uint8*)screen->pixels, screen->pitch, ((Uint8 *)src) - 304*scroll_reg, 304, 304, 192+scroll_reg);
+		normal2x_line(((Uint8*)screen->pixels) + 2*(192+scroll_reg)*screen->pitch, screen->pitch, src + 304*191, -scroll_reg);
+	}
 }
 
 /* advmame3x scaler */
 void render3x_scaled(char *src)
 {
-	scale3x(screen, (Uint8 *)src, 304, 304, 192);
+	if (scroll_reg >= 0)
+	{
+		if (scroll_reg != 0)
+		{
+			normal3x_line((Uint8*)screen->pixels, screen->pitch, src, scroll_reg);
+		}
+		scale3x(((Uint8*)screen->pixels) + 3*scroll_reg*screen->pitch, screen->pitch, (Uint8 *)src, 304, 304, 192-scroll_reg);
+	}
+	else
+	{
+		scale3x((Uint8*)screen->pixels, screen->pitch, ((Uint8 *)src) - 304*scroll_reg, 304, 304, 192+scroll_reg);
+		normal3x_line(((Uint8*)screen->pixels) + 3*(192+scroll_reg)*screen->pitch, screen->pitch, src + 304*191, -scroll_reg);
+	}
 }
 
 /** Simple X2 scaler
@@ -122,7 +217,7 @@ void render3x_scaled(char *src)
 */
 void render2x(char *src)
 {
-	int x, y;
+	int x, y, srcy;
 	unsigned char wide[304*2];
 
 	for (y=0; y<192; y++)
@@ -130,7 +225,10 @@ void render2x(char *src)
 		char *srcp;
 		unsigned char *widep;
 
-		srcp = src + 304*y;
+		srcy = y - scroll_reg;
+		if (srcy < 0) srcy = 0;
+		if (srcy >= 192) srcy = 191;
+		srcp = src + 304*srcy;
 		widep = wide;
 		for (x=0; x<304; x++)
 		{
@@ -148,7 +246,7 @@ void render2x(char *src)
 */
 void render3x(char *src)
 {
-	int x, y;
+	int x, y, srcy;
 	unsigned char wide[304*3];
 
 	for (y=0; y<192; y++)
@@ -156,7 +254,10 @@ void render3x(char *src)
 		char *srcp;
 		unsigned char *widep;
 
-		srcp = src + 304*y;
+		srcy = y - scroll_reg;
+		if (srcy < 0) srcy = 0;
+		if (srcy >= 192) srcy = 191;
+		srcp = src + 304*srcy;
 		widep = wide;
 		for (x=0; x<304; x++)
 		{
@@ -173,62 +274,63 @@ void render3x(char *src)
 
 void render800x480(char *src)
 {
-    char *dst;
-	int x, y;
-    unsigned int delta, num_pixels;
+	int x, y, srcy;
+	unsigned char wide[800], *dst;
+	unsigned int delta, num_pixels;
 
-    dst = (char *)screen->pixels;
-
-    delta = (50 << 24) / 19; // = 800 / 304
-	for (y=0; y<192; y+=2)
+	dst = (unsigned char *)screen->pixels;
+	delta = (12 << 24) / 19; // = (800-2*304) / 304
+	for (y=0; y<192; y++)
 	{
-        num_pixels = 1 << 23; // = 0.5
-        for (x=0; x<304; x++)
-        {
-            num_pixels += delta;
+		char *srcp;
+		unsigned char *widep;
 
-            if ((num_pixels >> 24) == 2)
-            {
-                num_pixels -= (2 << 24);
-                dst[0] = dst[1] = dst[800] = dst[801] = src[x];
-                dst += 2;
-            }
-            else
-            {
-                num_pixels -= (3 << 24);
-                dst[0] = dst[1] = dst[2] = dst[800] = dst[801] = dst[802] = src[x];
-                dst += 3;
-            }
-        }
-        src += 304;
-        dst += 800;
+		srcy = y - scroll_reg;
+		if (srcy < 0) srcy = 0;
+		if (srcy >= 192) srcy = 191;
+		srcp = src + 304*srcy;
+		widep = wide;
 
-        num_pixels = 1 << 23; // = 0.5
-        for (x=0; x<304; x++)
-        {
-            num_pixels += delta;
+		num_pixels = 1 << 23; // = 0.5
+		for (x=0; x<304; x++)
+		{
+			num_pixels += delta;
+			if (num_pixels & (1 << 24))
+			{
+				num_pixels -= (1 << 24);
+				*widep++ = *srcp;
+			}
+			*widep++ = *srcp;
+			*widep++ = *srcp++;
+		}
 
-            if ((num_pixels >> 24) == 2)
-            {
-                num_pixels -= (2 << 24);
-                dst[0] = dst[1] = dst[800] = dst[801] = dst[1600] = dst[1601] = src[x];
-                dst += 2;
-            }
-            else
-            {
-                num_pixels -= (3 << 24);
-                dst[0] = dst[1] = dst[2] = dst[800] = dst[801] = dst[802] = dst[1600] = dst[1601] = dst[1602] = src[x];
-                dst += 3;
-            }
-        }
-        src += 304;
-        dst += 2*800;
-    }
+		memcpy(dst, wide, 800);
+		dst += screen->pitch;
+		memcpy(dst, wide, 800);
+		dst += screen->pitch;
+		if (y & 1)
+		{
+			memcpy(dst, wide, 800);
+			dst += screen->pitch;
+		}
+	}
 }
 
 void render800x480_scaled(char *src)
 {
-	scale800x480((Uint8 *)screen->pixels, (Uint8 *)src);
+	if (scroll_reg >= 0)
+	{
+		if (scroll_reg != 0)
+		{
+			normal800x480_line((Uint8*)screen->pixels, screen->pitch, src, (scroll_reg * 5) >> 1);
+		}
+		scale800x480(((Uint8*)screen->pixels) + ((scroll_reg * 5) >> 1)*screen->pitch, screen->pitch, (Uint8 *)src, 192-scroll_reg);
+	}
+	else
+	{
+		scale800x480((Uint8*)screen->pixels, screen->pitch, ((Uint8 *)src) - 304*scroll_reg, 192+scroll_reg);
+		normal800x480_line(((Uint8*)screen->pixels) + (480-((-scroll_reg * 5) >> 1))*screen->pitch, screen->pitch, src + 304*191, (-scroll_reg * 5) >> 1);
+	}
 }
 
 /** Renders a virtual screen
