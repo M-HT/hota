@@ -61,7 +61,7 @@ void stop_music()
 */
 static void play_music_track_cd(int track, int loop)
 {
-	LOG(("play_music_track_cd(track=%d, loop=%d, sdlcd=0x%x)\n", track, loop, (unsigned)sdl_cd));
+	LOG(("play_music_track_cd(track=%d, loop=%d, sdlcd=0x%x)\n", track, loop, (unsigned)(unsigned long)sdl_cd));
 
 	if (CD_INDRIVE(SDL_CDStatus(sdl_cd)))
 	{

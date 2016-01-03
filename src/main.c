@@ -485,24 +485,24 @@ void check_events()
 				break;
 
 				case SDLK_PAGEDOWN:
-                if (cls.pandora)
-                {
-                    key_a = 0;
-                }
+				if (cls.pandora)
+				{
+					key_a = 0;
+				}
 				break;
 
 				case SDLK_END:
-                if (cls.pandora)
-                {
-                    key_b = 0;
-                }
+				if (cls.pandora)
+				{
+					key_b = 0;
+				}
 				break;
 
 				case SDLK_HOME:
-                if (cls.pandora)
-                {
-                    key_c = 0;
-                }
+				if (cls.pandora)
+				{
+					key_c = 0;
+				}
 				break;
 
 				case SDLK_q:
@@ -583,24 +583,24 @@ void check_events()
 				break;
 
 				case SDLK_PAGEDOWN:
-                if (cls.pandora)
-                {
-                    key_a = 1;
-                }
+				if (cls.pandora)
+				{
+					key_a = 1;
+				}
 				break;
 
 				case SDLK_END:
-                if (cls.pandora)
-                {
-                    key_b = 1;
-                }
+				if (cls.pandora)
+				{
+					key_b = 1;
+				}
 				break;
 
 				case SDLK_HOME:
-                if (cls.pandora)
-                {
-                    key_c = 1;
-                }
+				if (cls.pandora)
+				{
+					key_c = 1;
+				}
 				break;
 
 				#ifdef ENABLE_DEBUG
@@ -620,10 +620,10 @@ void check_events()
 				case SDLK_RETURN:
 				if (event.key.keysym.mod & KMOD_ALT)
 				{
-                    if (!cls.pandora)
-                    {
-                        toggle_fullscreen();
-                    }
+					if (!cls.pandora)
+					{
+						toggle_fullscreen();
+					}
 				}
 				break;
 
@@ -653,12 +653,12 @@ void rest(int fps)
 {
 	if (fastest_flag == 0)
 	{
-        if (fps == 0)
-        {
-            last_tick = SDL_GetTicks();
-            last_tick_fp = 0;
-            return;
-        }
+		if (fps == 0)
+		{
+			last_tick = SDL_GetTicks();
+			last_tick_fp = 0;
+			return;
+		}
 
 		if (speed_throttle == 1)
 		{
@@ -666,16 +666,16 @@ void rest(int fps)
 			fps = fps*10;
 		}
 
-        Uint32 diff = ((1000 << 16) / fps) + last_tick_fp;
-        last_tick_fp = diff & 0xffff;
-        diff = diff >> 16;
-        Uint32 current_tick = SDL_GetTicks();
-        while (current_tick - last_tick < diff)
-        {
-            SDL_Delay(1);
-            current_tick = SDL_GetTicks();
-        }
-        last_tick += diff;
+		Uint32 diff = ((1000 << 16) / fps) + last_tick_fp;
+		last_tick_fp = diff & 0xffff;
+		diff = diff >> 16;
+		Uint32 current_tick = SDL_GetTicks();
+		while (current_tick - last_tick < diff)
+		{
+			SDL_Delay(1);
+			current_tick = SDL_GetTicks();
+		}
+		last_tick += diff;
 	}
 }
 
@@ -768,7 +768,7 @@ static void run()
 		next_script = 7;
 	}
 
-    rest(0);
+	rest(0);
 
 	while (cls.quit == 0)
 	{
@@ -876,7 +876,7 @@ void sprite_test()
 
 	redraw = 1;
 	set_palette(0x11);
-    rest(0);
+	rest(0);
 	while (cls.quit == 0)
 	{
 		int a4;
@@ -1011,7 +1011,7 @@ int main(int argc, char **argv)
 	cls.paused = 0;
 	cls.nosound = 0;
 	cls.pandora = 0;
-    cls.iso_prefix = NULL;
+	cls.iso_prefix = NULL;
 
 	options_index = 0;
 	while (1)

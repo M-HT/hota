@@ -31,7 +31,7 @@ typedef struct
 	int speed_throttle;
 	int filtered;
 	int pandora;
-    char *iso_prefix;
+	char *iso_prefix;
 } client_static_t;
 
 extern client_static_t cls;

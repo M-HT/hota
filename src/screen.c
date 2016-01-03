@@ -137,7 +137,7 @@ void copy_screen(int dest, int src)
 	src_surface = get_screen_ptr(masked_src);
 	dest_surface = get_screen_ptr(masked_dest);
 
-	LOG(("copying surface %x onto %x\n", (unsigned)src_surface, (unsigned)dest_surface));
+	LOG(("copying surface %x onto %x\n", (unsigned)(unsigned long)src_surface, (unsigned)(unsigned long)dest_surface));
 	memcpy(dest_surface, src_surface, 304*192);
 }
 
@@ -175,7 +175,7 @@ void select_screen(int which)
     @param which   screen identifier (see comment above)
 
     Called by script when a frame is about to complete, and rendering
-    is to be done before proceeding to the next frame. this will 
+    is to be done before proceeding to the next frame. this will
     convert the 4-bit framebuffer to the native video output format. it
     is also possible to flip between visible and invisible buffers using
     which == 0xff
@@ -187,7 +187,7 @@ void update_screen(int which)
 	if (which == 0xfe)
 	{
 		src = screen_visible;
-	}	            
+	}
 	else if (which == 0xff)
 	{
 		char *d1, *d2;
@@ -218,7 +218,7 @@ int get_selected_screen()
 }
 
 /** Returns framebuffer address of working-screen
-    @returns pointer to framebuffer 
+    @returns pointer to framebuffer
 */
 char *get_selected_screen_ptr()
 {
