@@ -452,6 +452,7 @@ void quickload()
 	if (fp == NULL)
 	{
 		perror("failed to load 'quicksave' file\n");
+		return;
 	}
 
 	current_room = fgetc(fp);
