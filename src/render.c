@@ -25,7 +25,6 @@
 #include "client.h"
 #include "scale2x.h"
 #include "scale3x.h"
-#include "scale800x480.h"
 
 static int fullscreen = 0;
 static int scroll_reg = 0;
@@ -147,35 +146,6 @@ static void normal3x_line(Uint8 *dstpix, int dstpitch, char *src, int height)
 	}
 }
 
-static void normal800x480_line(Uint8 *dstpix, int dstpitch, char *src, int dstheight)
-{
-	int x, y;
-	unsigned char wide[800];
-	unsigned char *widep;
-	unsigned int delta, num_pixels;
-
-	delta = (12 << 24) / 19; // = (800-2*304) / 304
-	widep = wide;
-
-	num_pixels = 1 << 23; // = 0.5
-	for (x=0; x<304; x++)
-	{
-		num_pixels += delta;
-		if (num_pixels & (1 << 24))
-		{
-			num_pixels -= (1 << 24);
-			*widep++ = *src;
-		}
-		*widep++ = *src;
-		*widep++ = *src++;
-	}
-
-	for (y=0; y<dstheight; y++)
-	{
-		memcpy(dstpix + y*dstpitch, wide, 800);
-	}
-}
-
 /* advmame2x scaler */
 void render2x_scaled(char *src)
 {
@@ -272,67 +242,6 @@ void render3x(char *src)
 	}
 }
 
-void render800x480(char *src)
-{
-	int x, y, srcy;
-	unsigned char wide[800], *dst;
-	unsigned int delta, num_pixels;
-
-	dst = (unsigned char *)screen->pixels;
-	delta = (12 << 24) / 19; // = (800-2*304) / 304
-	for (y=0; y<192; y++)
-	{
-		char *srcp;
-		unsigned char *widep;
-
-		srcy = y - scroll_reg;
-		if (srcy < 0) srcy = 0;
-		if (srcy >= 192) srcy = 191;
-		srcp = src + 304*srcy;
-		widep = wide;
-
-		num_pixels = 1 << 23; // = 0.5
-		for (x=0; x<304; x++)
-		{
-			num_pixels += delta;
-			if (num_pixels & (1 << 24))
-			{
-				num_pixels -= (1 << 24);
-				*widep++ = *srcp;
-			}
-			*widep++ = *srcp;
-			*widep++ = *srcp++;
-		}
-
-		memcpy(dst, wide, 800);
-		dst += screen->pitch;
-		memcpy(dst, wide, 800);
-		dst += screen->pitch;
-		if (y & 1)
-		{
-			memcpy(dst, wide, 800);
-			dst += screen->pitch;
-		}
-	}
-}
-
-void render800x480_scaled(char *src)
-{
-	if (scroll_reg >= 0)
-	{
-		if (scroll_reg != 0)
-		{
-			normal800x480_line((Uint8*)screen->pixels, screen->pitch, src, (scroll_reg * 5) >> 1);
-		}
-		scale800x480(((Uint8*)screen->pixels) + ((scroll_reg * 5) >> 1)*screen->pitch, screen->pitch, (Uint8 *)src, 192-scroll_reg);
-	}
-	else
-	{
-		scale800x480((Uint8*)screen->pixels, screen->pitch, ((Uint8 *)src) - 304*scroll_reg, 192+scroll_reg);
-		normal800x480_line(((Uint8*)screen->pixels) + (480-((-scroll_reg * 5) >> 1))*screen->pitch, screen->pitch, src + 304*191, (-scroll_reg * 5) >> 1);
-	}
-}
-
 /** Renders a virtual screen
     @param src
 */
@@ -367,25 +276,11 @@ void render(char *src)
 		case 3:
 		if (cls.filtered == 0)
 		{
-			if (cls.pandora)
-			{
-				render800x480(src);
-			}
-			else
-			{
-				render3x(src);
-			}
+			render3x(src);
 		}
 		else
 		{
-			if (cls.pandora)
-			{
-				render800x480_scaled(src);
-			}
-			else
-			{
-				render3x_scaled(src);
-			}
+			render3x_scaled(src);
 		}
 		break;
 	}
@@ -444,7 +339,7 @@ void set_palette(int which)
 void toggle_fullscreen()
 {
 	/* hack, fullscreen not supported at scale==3 */
-	if ((cls.scale == 3) && !cls.pandora)
+	if (cls.scale == 3)
 	{
 		return;
 	}
@@ -456,14 +351,8 @@ void toggle_fullscreen()
 	{
 		LOG(("create SDL surface of 304x192x8\n"));
 
-		if (cls.pandora && (cls.scale == 3))
-		{
-			screen = SDL_SetVideoMode(800, 480, 8, SDL_SWSURFACE);
-		}
-		else
-		{
-			screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
-		}
+		screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
+
 		SDL_SetColors(screen, palette, 0, 256);
 		SDL_ShowCursor(1);
 	}
@@ -471,24 +360,12 @@ void toggle_fullscreen()
 	{
 		int w, h;
 
-#if defined(PANDORA)
-		w = 304*cls.scale;
-		h = 192*cls.scale;
-#else
 		w = 320*cls.scale;
 		h = 200*cls.scale;
-#endif
 
 		LOG(("setting fullscreen mode %dx%dx8\n", w, h));
 
-		if (cls.pandora && (cls.scale == 3))
-		{
-			screen = SDL_SetVideoMode(800, 480, 8, SDL_DOUBLEBUF|SDL_HWSURFACE|SDL_FULLSCREEN);
-		}
-		else
-		{
-			screen = SDL_SetVideoMode(w, h, 8, SDL_DOUBLEBUF|SDL_HWSURFACE|SDL_FULLSCREEN);
-		}
+		screen = SDL_SetVideoMode(w, h, 8, SDL_DOUBLEBUF|SDL_HWSURFACE|SDL_FULLSCREEN);
 
 		SDL_SetColors(screen, palette, 0, 256);
 		SDL_ShowCursor(0);
@@ -497,14 +374,7 @@ void toggle_fullscreen()
 
 int render_create_surface()
 {
-	if (cls.pandora && (cls.scale == 3))
-	{
-		screen = SDL_SetVideoMode(800, 480, 8, SDL_SWSURFACE);
-	}
-	else
-	{
-		screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
-	}
+	screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
 	if (screen == NULL)
 	{
 		return -1;

@@ -4,5 +4,5 @@ Heart of The Alien open-source engine rewrite.
 
 Original homepage: http://hota.sourceforge.net/
 
-This fork contains bug fixes and Pandora specific functionality.
+This fork contains bug fixes and features which were unimplemented in the original.
 
