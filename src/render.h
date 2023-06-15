@@ -16,8 +16,4 @@ void toggle_fullscreen();
 
 int get_current_palette();
 
-#if defined(GP2X)
-void toggle_scaling(void);
-#endif
-
 #endif

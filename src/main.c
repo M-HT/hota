@@ -23,15 +23,6 @@
 #include <assert.h>
 #include <SDL.h>
 #include <SDL_mixer.h>
-#if defined(GP2X)
-	#include <sys/ioctl.h>
-	#include <unistd.h>
-	#include <sys/soundcard.h>
-	#include <fcntl.h>
-	#if (SDL_MAJOR_VERSION > 1 || SDL_MAJOR_VERSION == 1 && (SDL_MINOR_VERSION > 2 || SDL_MINOR_VERSION == 2 && SDL_PATCHLEVEL >= 9 ) )
-		#include <SDL_gp2x.h>
-	#endif
-#endif
 
 #include "client.h"
 #include "vm.h"
@@ -146,116 +137,14 @@ static void atexit_callback(void)
 	SDL_Quit();
 }
 
-#if defined(GP2X)
-static int InitialVolume;
-
-// Set new GP2X mixer level, 0-100
-static void Set_GP2X_Volume (int newvol)
-{
-	int soundDev, vol;
-
-	if ((newvol >= 0) && (newvol <= 100))
-	{
-		soundDev = open("/dev/mixer", O_RDWR);
-		if (soundDev != -1)
-		{
-			vol = ((newvol << 8) | newvol);
-			ioctl(soundDev, SOUND_MIXER_WRITE_PCM, &vol);
-			close(soundDev);
-		}
-	}
-}
-
-// Returns 0-100, current mixer volume, -1 on error.
-static int Get_GP2X_Volume (void)
-{
-	int soundDev, vol;
-
-	vol = -1;
-	soundDev = open("/dev/mixer", O_RDONLY);
-	if (soundDev != -1)
-	{
-		ioctl(soundDev, SOUND_MIXER_READ_PCM, &vol);
-		close(soundDev);
-		if (vol != -1)
-		{
-			//just return one channel , not both channels, they're hopefully the same anyways
-			return (vol & 0xFF);
-		}
-	}
-
-	return vol;
-}
-
-static void Set_Initial_GP2X_Volume (void)
-{
-	Set_GP2X_Volume(InitialVolume);
-}
-
-static void Change_HW_Audio_Volume (int amount)
-{
-	int current_volume;
-
-	current_volume = Get_GP2X_Volume();
-
-	if (current_volume == -1) current_volume = 68;
-
-	if ((amount > 1) && current_volume < 12)
-	{
-		amount = 1;
-	}
-	else if ((amount < -1) && current_volume <= 12)
-	{
-		amount = -1;
-	}
-
-	current_volume += amount;
-
-	if (current_volume > 100)
-	{
-		current_volume = 100;
-	}
-	else if (current_volume < 0)
-	{
-		current_volume = 0;
-	}
-	Set_GP2X_Volume(current_volume);
-}
-#endif
-
 static int initialize()
 {
-#if defined(GP2X)
-	InitialVolume = Get_GP2X_Volume();
-	atexit(Set_Initial_GP2X_Volume);
-#endif
-
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_CDROM|SDL_INIT_AUDIO);
 	atexit(atexit_callback);
 
-#if defined(GP2X)
-	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK)<0)
-	{
-		panic("failed to initialize SDL joystick subsystem");
-	}
-	SDL_JoystickOpen(0);
-#if defined(SDL_GP2X__H)
-	if (SDL_GP2X_MouseType() == GP2X_MOUSE_TOUCHSCREEN)
-	{
-		SDL_GP2X_TouchpadMouseMotionEvents(0);
-		SDL_GP2X_TouchpadMouseButtonEvents(0);
-	}
-#endif
-#endif
-
 	if (cls.nosound == 0)
 	{
-#if defined(GP2X)
-#define MIX_BUFFER_SIZE 1024
-#else
-#define MIX_BUFFER_SIZE 4096
-#endif
-		if (Mix_OpenAudio(44100, AUDIO_S16, 2, MIX_BUFFER_SIZE) < 0)
+		if (Mix_OpenAudio(44100, AUDIO_S16, 2, 4096) < 0)
 		{
 			panic("Mix_OpenAudio failed\n");
 		}
@@ -283,10 +172,6 @@ static int initialize()
 	{
 		panic("failed to create video surface");
 	}
-
-#if defined(GP2X)
-	Set_Initial_GP2X_Volume();
-#endif
 
 	return 0;
 }
@@ -758,127 +643,6 @@ void check_events()
 				break;
 			}
 			break;
-
-#if defined(GP2X)
-// GP2X buttons
-#define GP2X_BUTTON_UP              (0)
-#define GP2X_BUTTON_DOWN            (4)
-#define GP2X_BUTTON_LEFT            (2)
-#define GP2X_BUTTON_RIGHT           (6)
-#define GP2X_BUTTON_UPLEFT          (1)
-#define GP2X_BUTTON_UPRIGHT         (7)
-#define GP2X_BUTTON_DOWNLEFT        (3)
-#define GP2X_BUTTON_DOWNRIGHT       (5)
-#define GP2X_BUTTON_CLICK           (18)
-#define GP2X_BUTTON_A               (12)
-#define GP2X_BUTTON_B               (13)
-#define GP2X_BUTTON_X               (14)
-#define GP2X_BUTTON_Y               (15)
-#define GP2X_BUTTON_L               (10)
-#define GP2X_BUTTON_R               (11)
-#define GP2X_BUTTON_START           (8)
-#define GP2X_BUTTON_SELECT          (9)
-#define GP2X_BUTTON_VOLUP           (16)
-#define GP2X_BUTTON_VOLDOWN         (17)
-
-			case SDL_JOYBUTTONUP:
-			switch(event.jbutton.button)
-			{
-				case GP2X_BUTTON_RIGHT:
-				key_right = 0;
-				break;
-
-				case GP2X_BUTTON_LEFT:
-				key_left = 0;
-				break;
-
-				case GP2X_BUTTON_UP:
-				key_up = 0;
-				break;
-
-				case GP2X_BUTTON_DOWN:
-				key_down = 0;
-				break;
-
-				case GP2X_BUTTON_X:
-				key_a = 0;
-				break;
-
-				case GP2X_BUTTON_B:
-				key_b = 0;
-				break;
-
-				case GP2X_BUTTON_A:
-				key_c = 0;
-				break;
-
-				default:
-				/* keep -Wall happy */
-				break;
-			}
-			break;
-
-			case SDL_JOYBUTTONDOWN:
-			switch(event.jbutton.button)
-			{
-				case GP2X_BUTTON_SELECT:
-				cls.quit = 1;
-				break;
-
-				case GP2X_BUTTON_RIGHT:
-				key_right = 1;
-				break;
-
-				case GP2X_BUTTON_LEFT:
-				key_left = 1;
-				break;
-
-				case GP2X_BUTTON_UP:
-				key_up = 1;
-				break;
-
-				case GP2X_BUTTON_DOWN:
-				key_down = 1;
-				break;
-
-				case GP2X_BUTTON_X:
-				key_a = 1;
-				break;
-
-				case GP2X_BUTTON_B:
-				key_b = 1;
-				break;
-
-				case GP2X_BUTTON_A:
-				key_c = 1;
-				break;
-
-				case GP2X_BUTTON_L:
-				quicksave();
-				break;
-
-				case GP2X_BUTTON_R:
-				quickload();
-				break;
-
-				case GP2X_BUTTON_START:
-				toggle_scaling();
-				break;
-
-				case GP2X_BUTTON_VOLUP:
-				Change_HW_Audio_Volume(4);
-				break;
-
-				case GP2X_BUTTON_VOLDOWN:
-				Change_HW_Audio_Volume(-4);
-				break;
-
-				default:
-				/* keep -Wall happy */
-				break;
-			}
-			break;
-#endif
 
 			case SDL_QUIT:
 			leave_game();

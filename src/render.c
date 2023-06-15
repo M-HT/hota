@@ -21,11 +21,6 @@
 #include "debug.h"
 #include "render.h"
 #include "game2bin.h"
-#if defined(GP2X)
-	#if (SDL_MAJOR_VERSION > 1 || SDL_MAJOR_VERSION == 1 && (SDL_MINOR_VERSION > 2 || SDL_MINOR_VERSION == 2 && SDL_PATCHLEVEL >= 9 ) )
-		#include <SDL_gp2x.h>
-	#endif
-#endif
 
 #include "client.h"
 #include "scale2x.h"
@@ -34,10 +29,6 @@
 
 static int fullscreen = 0;
 static int scroll_reg = 0;
-#if defined(GP2X)
-static int tvout = 0;
-static int originalsize = 0;
-#endif
 
 extern int fullscreen_flag;
 extern SDL_Surface *screen;
@@ -113,223 +104,6 @@ void render1x(char *src)
 		}
 	}
 }
-
-#if defined(GP2X)
-static void normal320x240_line(Uint8 *dstpix, int dstpitch, char *src, int dstheight)
-{
-	int x, y;
-	unsigned char wide[320];
-	unsigned char *widep;
-	unsigned int delta, num_pixels;
-
-	delta = (1 << 24) / 19; // = (320-304) / 304
-	widep = wide;
-
-	num_pixels = 1 << 23; // = 0.5
-	for (x=0; x<304; x++)
-	{
-		num_pixels += delta;
-		if (num_pixels & (1 << 24))
-		{
-			num_pixels -= (1 << 24);
-			*widep++ = *src;
-		}
-		*widep++ = *src++;
-	}
-
-	for (y=0; y<dstheight; y++)
-	{
-		memcpy(dstpix + y*dstpitch, wide, 320);
-	}
-}
-
-#define A src1[0]
-#define B src1[1]
-#define C src1[2]
-#define D src2[0]
-#define E src2[1]
-#define F src2[2]
-#define G src3[0]
-#define H src3[1]
-#define I src3[2]
-static void scale320x240_line_single(Uint8 *dst, Uint8 *src1, Uint8 *src2, Uint8 *src3)
-{
-	int x;
-	unsigned int delta, num_pixels;
-
-	// first column (single column)
-	{
-		*dst++ = *src2;
-	}
-
-	delta = (1 << 24) / 19; // = (320-304) / 304
-	num_pixels = 1 << 23; // = 0.5
-	for (x=0; x<303; x++)
-	{
-		num_pixels += delta;
-
-		if (num_pixels & (1 << 24))
-		{
-			// double column
-			num_pixels -= (1 << 24);
-			if (B != H && D != F)
-			{
-				dst[0] = E; // E4
-				dst[1] = ((B == F && E != I) || (H == F && E != C) ) ? F : E; // E5
-				dst += 2;
-			}
-			else
-			{
-				dst[0] = dst[1] = E;
-				dst += 2;
-			}
-		}
-		else
-		{
-			// single column
-			*dst++ = E;
-		}
-		src1++;
-		src2++;
-		src3++;
-	}
-}
-
-static void scale320x240_line_double(Uint8 *dst, int dstpitch, Uint8 *src1, Uint8 *src2, Uint8 *src3)
-{
-	int x;
-	unsigned int delta, num_pixels;
-
-	// first column (single column)
-	{
-		dst[0] = dst[dstpitch] = *src2;
-		dst++;
-	}
-
-	delta = (1 << 24) / 19; // = (320-304) / 304
-	num_pixels = 1 << 23; // = 0.5
-	for (x=0; x<303; x++)
-	{
-		num_pixels += delta;
-
-		if (num_pixels & (1 << 24))
-		{
-			// double column
-			num_pixels -= (1 << 24);
-			if (B != H && D != F)
-			{
-				dst[0] = E; // E4
-				dst[1] = ((B == F && E != I) || (H == F && E != C) ) ? F : E; // E5
-				dst[dstpitch] = ((D == H && E != I) || (H == F && E != G) ) ? H : E; // E7
-				dst[dstpitch+1] = (H == F) ? F : E; // E8
-				dst += 2;
-			}
-			else
-			{
-				dst[0] = dst[1] = dst[dstpitch] = dst[dstpitch+1] = E;
-				dst += 2;
-			}
-		}
-		else
-		{
-			// single column
-			dst[0] = dst[dstpitch] = E;
-			dst++;
-		}
-		src1++;
-		src2++;
-		src3++;
-	}
-}
-#undef A
-#undef B
-#undef C
-#undef D
-#undef E
-#undef F
-#undef G
-#undef H
-#undef I
-
-static void scale320x240(Uint8 *dst, int dstpitch, Uint8 *src, int height)
-{
-	int y;
-
-	// first line
-	scale320x240_line_single(dst, src, src, src+304);
-	src+=304;
-	dst+=dstpitch;
-
-	height = height - 2;
-	for (y=0; y<height; y++)
-	{
-		if ((y & 3) == 0)
-		{
-			// double line
-			scale320x240_line_double(dst, dstpitch, src-304, src, src+304);
-			src+=304;
-			dst+=2*dstpitch;
-		}
-		else
-		{
-			// single line
-			scale320x240_line_single(dst, src-304, src, src+304);
-			src+=304;
-			dst+=dstpitch;
-		}
-	}
-
-	// last line
-	scale320x240_line_single(dst, src-304, src, src);
-}
-
-void render320x240_scaled(char *src)
-{
-	if (scroll_reg >= 0)
-	{
-		if (scroll_reg != 0)
-		{
-			normal320x240_line((Uint8*)screen->pixels, screen->pitch, src, scroll_reg+((scroll_reg+2)>>2));
-		}
-		scale320x240(((Uint8*)screen->pixels) + (scroll_reg+((scroll_reg+2)>>2))*screen->pitch, screen->pitch, (Uint8 *)src, 192-scroll_reg);
-	}
-	else
-	{
-		scale320x240((Uint8*)screen->pixels, screen->pitch, ((Uint8 *)src) - 304*scroll_reg, 192+scroll_reg);
-		normal320x240_line(((Uint8*)screen->pixels) + (240-(((2-scroll_reg)>>2)-scroll_reg))*screen->pitch, screen->pitch, src + 304*191, ((2-scroll_reg)>>2)-scroll_reg);
-	}
-}
-
-void toggle_scaling(void)
-{
-	if (tvout) return;
-
-	originalsize = 1 ^ originalsize;
-#if defined(SDL_GP2X__H)
-	if (originalsize)
-	{
-		SDL_GP2X_MiniDisplay(8, 24);
-	}
-	else
-	{
-		SDL_GP2X_MiniDisplay(0, 0);
-	}
-#endif
-	{
-		SDL_Rect rect;
-
-		// clear screen
-		rect.x = 0;
-		rect.y = 0;
-		rect.w = screen->w;
-		rect.h = screen->h;
-		SDL_FillRect(screen, &rect, 0);
-		SDL_Flip(screen);
-		SDL_FillRect(screen, &rect, 0);
-		SDL_Flip(screen);
-	}
-}
-#endif
 
 static void normal2x_line(Uint8 *dstpix, int dstpitch, char *src, int height)
 {
@@ -572,20 +346,6 @@ void render(char *src)
 		SDL_SetColors(screen, palette, 0, 256);
 	}
 
-#if defined(GP2X)
-	if (!tvout)
-	{
-		if (originalsize)
-		{
-			render1x(src);
-		}
-		else
-		{
-			render320x240_scaled(src);
-		}
-	}
-	else
-#endif
 	switch(cls.scale)
 	{
 		case 1:
@@ -689,10 +449,6 @@ void toggle_fullscreen()
 		return;
 	}
 
-#if defined(GP2X)
-	if (fullscreen) return;
-#endif
-
 	fullscreen = 1 ^ fullscreen;
 	screen = 0;
 
@@ -718,17 +474,6 @@ void toggle_fullscreen()
 #if defined(PANDORA)
 		w = 304*cls.scale;
 		h = 192*cls.scale;
-#elif defined(GP2X)
-		if (tvout)
-		{
-			w = 320*cls.scale;
-			h = 200*cls.scale;
-		}
-		else
-		{
-			w = 320;
-			h = 240;
-		}
 #else
 		w = 320*cls.scale;
 		h = 200*cls.scale;
@@ -752,14 +497,6 @@ void toggle_fullscreen()
 
 int render_create_surface()
 {
-#if defined(GP2X) && defined(SDL_GP2X__H)
-	SDL_Rect size;
-
-	SDL_GP2X_GetPhysicalScreenSize(&size);
-
-	tvout = (size.w == 320)?0:1;
-#endif
-
 	if (cls.pandora && (cls.scale == 3))
 	{
 		screen = SDL_SetVideoMode(800, 480, 8, SDL_SWSURFACE);
