@@ -132,7 +132,7 @@ void play_sample(int index, int volume, int channel)
 	chunk = (Mix_Chunk *)malloc(sizeof(Mix_Chunk));
 	chunk->allocated = 1;
 	chunk->abuf = cvt.buf;
-	chunk->alen = outlen;
+	chunk->alen = cvt.len_cvt;
 	chunk->volume = volume >> 1;
 
 	cached_samples[index] = chunk;
