@@ -58,15 +58,3 @@ void scale3x(Uint8 *dstpix, int dstpitch, Uint8 *srcpix, int srcpitch, int width
 	}
 }
 
-void scale3x_surface(SDL_Surface *src, SDL_Surface *dst)
-{
-	const int srcpitch = src->pitch;
-	const int width = src->w;
-	const int height = src->h;
-	Uint8* srcpix = (Uint8*)src->pixels;
-	const int dstpitch = dst->pitch;
-	Uint8* dstpix = (Uint8*)dst->pixels;
-
-	scale3x(dstpix, dstpitch, srcpix, srcpitch, width, height);
-}
-

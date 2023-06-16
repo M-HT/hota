@@ -100,8 +100,6 @@ static unsigned char cached_recorded_keys[RECORDED_KEYS_CACHE];
 /** file descriptor where keys are written to, or read from */
 FILE *record_fp = 0;
 
-SDL_Surface *screen;
-
 /** scratchpad used for unpacking code */
 static unsigned char scratchpad[29184];
 
@@ -139,12 +137,16 @@ static void atexit_callback(void)
 
 static int initialize()
 {
-	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_CDROM|SDL_INIT_AUDIO);
+	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
 	atexit(atexit_callback);
 
 	if (cls.nosound == 0)
 	{
+#if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) >= SDL_VERSIONNUM(2, 0, 2))
+		if (Mix_OpenAudioDevice(44100, AUDIO_S16, 2, 4096, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE) < 0)
+#else
 		if (Mix_OpenAudio(44100, AUDIO_S16, 2, 4096) < 0)
+#endif
 		{
 			panic("Mix_OpenAudio failed\n");
 		}
@@ -798,8 +800,7 @@ static void run()
 			}
 		}
 
-		SDL_UpdateRect(screen, 0, 0, 0, 0);
-                music_update();
+		music_update();
 
 		rest(12);
 	}
@@ -852,7 +853,6 @@ void sprite_test()
 
 			render_sprite(0);
 			render(background);
-			SDL_UpdateRect(screen, 0, 0, 0, 0);
 			redraw = 0;
 			print_sprite(0);
 		}

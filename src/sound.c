@@ -59,6 +59,8 @@ void play_sample(int index, int volume, int channel)
 	int length, outlen, ptr;
 	int p, sample_ptr;
 	char *current_sample;
+	int frequency, channels;
+	Uint16 format;
 	SDL_AudioCVT cvt;
 	Mix_Chunk *chunk;
 
@@ -95,7 +97,8 @@ void play_sample(int index, int volume, int channel)
 	LOG(("sample data starts at 0x%x\n", ptr));
 
 	/* convert from 8000 mono 8bit, to 44100 stereo 16bit */
-	SDL_BuildAudioCVT(&cvt, AUDIO_S8, 1, 8000, AUDIO_S16, 2, 44100);
+	Mix_QuerySpec(&frequency, &format, &channels);
+	SDL_BuildAudioCVT(&cvt, AUDIO_S8, 1, 8000, format, channels, frequency);
 	outlen = length * cvt.len_mult;
 
 	cvt.len = length;
@@ -132,11 +135,11 @@ void play_sample(int index, int volume, int channel)
 	chunk = (Mix_Chunk *)malloc(sizeof(Mix_Chunk));
 	chunk->allocated = 1;
 	chunk->abuf = cvt.buf;
-	chunk->alen = outlen;
+	chunk->alen = cvt.len_cvt;
 	chunk->volume = volume >> 1;
 
 	cached_samples[index] = chunk;
-	Mix_PlayChannel(channel, chunk, 0);
+	Mix_PlayChannelTimed(channel, chunk, 0, -1);
 }
 
 /** Initialize sound module

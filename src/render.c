@@ -30,7 +30,10 @@ static int fullscreen = 0;
 static int scroll_reg = 0;
 
 extern int fullscreen_flag;
-extern SDL_Surface *screen;
+static SDL_Window *window;
+static SDL_Surface *window_surface;
+static SDL_Surface *screen;
+static SDL_Palette *screen_palette;
 
 static int palette_changed = 0;
 static int current_palette = 0;
@@ -252,7 +255,7 @@ void render(char *src)
 	if (palette_changed)
 	{
 		palette_changed = 0;
-		SDL_SetColors(screen, palette, 0, 256);
+		SDL_SetPaletteColors(screen_palette, palette, 0, 256);
 	}
 
 	switch(cls.scale)
@@ -287,7 +290,8 @@ void render(char *src)
 
 	scroll_reg = 0;
 	SDL_UnlockSurface(screen);
-	SDL_Flip(screen);
+	SDL_BlitSurface(screen, NULL, window_surface, NULL);
+	SDL_UpdateWindowSurface(window);
 }
 
 /** Module initializer
@@ -345,15 +349,17 @@ void toggle_fullscreen()
 	}
 
 	fullscreen = 1 ^ fullscreen;
-	screen = 0;
+	SDL_DestroyWindow(window);
+	window = NULL;
+	window_surface = NULL;
 
 	if (fullscreen == 0)
 	{
 		LOG(("create SDL surface of 304x192x8\n"));
 
-		screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
+		window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 304*cls.scale, 192*cls.scale, 0);
+		window_surface = SDL_GetWindowSurface(window);
 
-		SDL_SetColors(screen, palette, 0, 256);
 		SDL_ShowCursor(1);
 	}
 	else
@@ -365,22 +371,40 @@ void toggle_fullscreen()
 
 		LOG(("setting fullscreen mode %dx%dx8\n", w, h));
 
-		screen = SDL_SetVideoMode(w, h, 8, SDL_DOUBLEBUF|SDL_HWSURFACE|SDL_FULLSCREEN);
+		window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_FULLSCREEN);
+		window_surface = SDL_GetWindowSurface(window);
 
-		SDL_SetColors(screen, palette, 0, 256);
 		SDL_ShowCursor(0);
 	}
 }
 
 int render_create_surface()
 {
-	screen = SDL_SetVideoMode(304*cls.scale, 192*cls.scale, 8, SDL_SWSURFACE);
-	if (screen == NULL)
+	window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 304*cls.scale, 192*cls.scale, 0);
+	if (window == NULL)
 	{
 		return -1;
 	}
 
-	SDL_WM_SetCaption("Heart of The Alien Redux", 0);
+	window_surface = SDL_GetWindowSurface(window);
+	if (window_surface == NULL)
+	{
+		return -2;
+	}
+
+	screen = SDL_CreateRGBSurface(0, 304*cls.scale, 192*cls.scale, 8, 0, 0, 0, 0);
+	if (screen == NULL)
+	{
+		return -3;
+	}
+
+	screen_palette = SDL_AllocPalette(256);
+	if (screen_palette == NULL)
+	{
+		return -4;
+	}
+
+	SDL_SetSurfacePalette(screen, screen_palette);
 
 	if (fullscreen_flag)
 	{
@@ -389,3 +413,4 @@ int render_create_surface()
 
 	return 0;
 }
+

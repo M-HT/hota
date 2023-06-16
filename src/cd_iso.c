@@ -122,17 +122,7 @@ int read_file(const char *filename, void *out)
 	}
 	else
 	{
-		const char *cdname = SDL_CDName(0);
-
-		if (cdname != NULL)
-		{
-			strcpy(archive, cdname);
-			strcat(archive, filename);
-		}
-		else
-		{
-			strcpy(archive, filename);
-		}
+		strcpy(archive, filename);
 
 		offset = 0;
 	}

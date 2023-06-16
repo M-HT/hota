@@ -24,17 +24,10 @@
 #include "cd_iso.h"
 #include "client.h"
 
-static SDL_CD *sdl_cd;
 static Mix_Music *current_track;
 
 /** (The Underdogs version of) Heart of The Alien's tracks are formatted like this */
 #define ISO_PREFIX "Heart Of The Alien (U) "
-
-/** Stops cd player */
-static void stop_music_cd()
-{
-	SDL_CDStop(sdl_cd);
-}
 
 /** Stops mp3 player */
 static void stop_music_mp3()
@@ -51,31 +44,13 @@ void stop_music()
 {
 	if (cls.nosound == 0)
 	{
-		cls.use_iso ? stop_music_mp3() : stop_music_cd();
-	}
-}
-
-/** Plays a single track from cd
-    @param track   track to play
-    @param loop    loop count (not supported yet)
-*/
-static void play_music_track_cd(int track, int loop)
-{
-	LOG(("play_music_track_cd(track=%d, loop=%d, sdlcd=0x%x)\n", track, loop, (unsigned)(unsigned long)sdl_cd));
-
-	if (CD_INDRIVE(SDL_CDStatus(sdl_cd)))
-	{
-		int err = SDL_CDPlayTracks(sdl_cd, track, 0, 1, 0);
-		LOG(("SDL_CDPlay returned %d\n", err));
-	}
-	else
-	{
-		LOG(("can't play cd audio, CD_INDRIVE failed\n"));
+		stop_music_mp3();
 	}
 }
 
 /** Plays an mp3 in background
     @param track    track to play (appended to PREFIX)
+    @param loop     loop count
 */
 static void play_music_track_mp3(int track, int loop)
 {
@@ -119,7 +94,7 @@ void play_music_track(int track, int loop)
 	{
 		stop_music();
 
-		cls.use_iso ? play_music_track_mp3(track, loop) : play_music_track_cd(track, loop);
+		play_music_track_mp3(track, loop);
 	}
 }
 
@@ -131,12 +106,4 @@ void music_update()
 /** Module initializer */
 void music_init()
 {
-	if (cls.nosound == 0)
-	{
-		if (cls.use_iso == 0)
-		{
-			/* initialize SDL CDROM, for playing audio tracks */
-			sdl_cd = SDL_CDOpen(0);
-		}
-	}
 }

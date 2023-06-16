@@ -34,8 +34,6 @@
 ///////
 void rest(int fps);
 
-extern SDL_Surface *screen;
-
 /* used for 4->8 bit convertion (140K penalty) */
 static unsigned char dummy[304*192/2];
 static unsigned char screenX[(1+192)*304*2];
@@ -54,7 +52,6 @@ static void copy_to_screen(int a4)
 {
 	//set_scroll(0); /////////
 	render((char *)screen0 + a4);
-	SDL_UpdateRect(screen, 0, 0, 0, 0);
 }
 
 static void draw_pixel(unsigned char *out, int offset, int color)
