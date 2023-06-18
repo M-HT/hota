@@ -31,9 +31,13 @@ static int scroll_reg = 0;
 
 extern int fullscreen_flag;
 static SDL_Window *window;
-static SDL_Surface *window_surface;
+static SDL_Renderer *renderer;
+static SDL_Texture *texture;
 static SDL_Surface *screen;
 static SDL_Palette *screen_palette;
+#if !SDL_VERSION_ATLEAST(2,0,12)
+static Uint16 texture_palette[16];
+#endif
 
 static int palette_changed = 0;
 static int current_palette = 0;
@@ -250,6 +254,14 @@ void render3x(char *src)
 */
 void render(char *src)
 {
+#if SDL_VERSION_ATLEAST(2,0,12)
+	SDL_Surface *texture_surface;
+#else
+	Uint16 *texture_pixels;
+	Uint8 *screen_pixels;
+	int texture_pitch, h, x;
+#endif
+
 	SDL_LockSurface(screen);
 
 	if (palette_changed)
@@ -289,9 +301,31 @@ void render(char *src)
 	}
 
 	scroll_reg = 0;
+
+#if SDL_VERSION_ATLEAST(2,0,12)
 	SDL_UnlockSurface(screen);
-	SDL_BlitSurface(screen, NULL, window_surface, NULL);
-	SDL_UpdateWindowSurface(window);
+	SDL_LockTextureToSurface(texture, NULL, &texture_surface);
+	SDL_BlitSurface(screen, NULL, texture_surface, NULL);
+	SDL_UnlockTexture(texture);
+#else
+	SDL_LockTexture(texture, NULL, (void **) &texture_pixels, &texture_pitch);
+
+	screen_pixels = (Uint8 *)screen->pixels;
+	for (h = screen->h; h != 0; h--)
+	{
+		for (x = 0; x < screen->w; x++)
+		{
+			texture_pixels[x] = texture_palette[screen_pixels[x]];
+		}
+		screen_pixels += screen->pitch;
+		texture_pixels = (Uint16 *) (texture_pitch + (Uint8 *)texture_pixels);
+	}
+
+	SDL_UnlockTexture(texture);
+	SDL_UnlockSurface(screen);
+#endif
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderPresent(renderer);
 }
 
 /** Module initializer
@@ -318,6 +352,10 @@ void set_palette_rgb12(unsigned char *rgb12)
 		g = ((c >> 4) & 0xf) << 4;
 		b = ((c >> 8) & 0xf) << 4;
 
+#if !SDL_VERSION_ATLEAST(2,0,12)
+		texture_palette[i] = (r << 4) | g | (b >> 4);
+#endif
+
 		palette[i].r = r | (r >> 4);
 		palette[i].g = g | (g >> 4);
 		palette[i].b = b | (b >> 4);
@@ -342,37 +380,32 @@ void set_palette(int which)
 
 void toggle_fullscreen()
 {
-	/* hack, fullscreen not supported at scale==3 */
-	if (cls.scale == 3)
-	{
-		return;
-	}
-
 	fullscreen = 1 ^ fullscreen;
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	window = NULL;
-	window_surface = NULL;
+	renderer = NULL;
+	texture = NULL;
 
 	if (fullscreen == 0)
 	{
-		LOG(("create SDL surface of 304x192x8\n"));
+		LOG(("create SDL surface of 304x192\n"));
 
 		window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 304*cls.scale, 192*cls.scale, 0);
-		window_surface = SDL_GetWindowSurface(window);
+		renderer = SDL_CreateRenderer(window, -1, 0);
+		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB444, SDL_TEXTUREACCESS_STREAMING, 304*cls.scale, 192*cls.scale);
 
 		SDL_ShowCursor(1);
 	}
 	else
 	{
-		int w, h;
+		LOG(("setting fullscreen mode\n"));
 
-		w = 320*cls.scale;
-		h = 200*cls.scale;
-
-		LOG(("setting fullscreen mode %dx%dx8\n", w, h));
-
-		window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_FULLSCREEN);
-		window_surface = SDL_GetWindowSurface(window);
+		window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+		SDL_RenderSetLogicalSize(renderer, 304*cls.scale, 192*cls.scale);
+		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB444, SDL_TEXTUREACCESS_STREAMING, 304*cls.scale, 192*cls.scale);
 
 		SDL_ShowCursor(0);
 	}
@@ -386,22 +419,30 @@ int render_create_surface()
 		return -1;
 	}
 
-	window_surface = SDL_GetWindowSurface(window);
-	if (window_surface == NULL)
+	renderer = SDL_CreateRenderer(window, -1, 0);
+	if (renderer == NULL)
 	{
 		return -2;
+	}
+
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB444, SDL_TEXTUREACCESS_STREAMING, 304*cls.scale, 192*cls.scale);
+	if (texture == NULL)
+	{
+		return -3;
 	}
 
 	screen = SDL_CreateRGBSurface(0, 304*cls.scale, 192*cls.scale, 8, 0, 0, 0, 0);
 	if (screen == NULL)
 	{
-		return -3;
+		return -4;
 	}
 
 	screen_palette = SDL_AllocPalette(256);
 	if (screen_palette == NULL)
 	{
-		return -4;
+		return -5;
 	}
 
 	SDL_SetSurfacePalette(screen, screen_palette);
