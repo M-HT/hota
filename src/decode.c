@@ -52,7 +52,9 @@ void load_room_screen(int room, int index);
 
 //////
 
+#ifdef ENABLE_DEBUG
 static char *cmpopar[6] = {"==", "!=", ">", ">=", "<", "<="};
+#endif
 
 int pc;
 int script_ptr;
@@ -399,7 +401,9 @@ void op_27()
 
 	if (d1 < 16)
 	{
+#ifdef ENABLE_DEBUG
 		int dummy = d1;
+#endif
 		d1 = get_sprite_data_byte(entry, d1);
 		LOG(("get %s of sprite %d (0x%x)\n", sprite_data_byte_str[dummy], entry, d1));
 		set_variable(2, d1);

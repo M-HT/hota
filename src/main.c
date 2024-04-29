@@ -143,10 +143,17 @@ static int initialize()
 	if (cls.nosound == 0)
 	{
 #if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) >= SDL_VERSIONNUM(2, 0, 2))
-		if (Mix_OpenAudioDevice(44100, AUDIO_S16, 2, 4096, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE) < 0)
-#else
-		if (Mix_OpenAudio(44100, AUDIO_S16, 2, 4096) < 0)
+		const SDL_version *link_version = Mix_Linked_Version();
+		if (SDL_VERSIONNUM(link_version->major, link_version->minor, link_version->patch) >= SDL_VERSIONNUM(2,0,2))
+		{
+			if (Mix_OpenAudioDevice(44100, AUDIO_S16, 2, 4096, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE) < 0)
+			{
+				panic("Mix_OpenAudio failed\n");
+			}
+		}
+		else
 #endif
+		if (Mix_OpenAudio(44100, AUDIO_S16, 2, 4096) < 0)
 		{
 			panic("Mix_OpenAudio failed\n");
 		}
@@ -475,16 +482,25 @@ void check_events()
 
 				case SDLK_z:
 				case SDLK_a:
+				#ifdef PYRA
+				case SDLK_PAGEDOWN:
+				#endif
 				key_a = 0;
 				break;
 
 				case SDLK_x:
 				case SDLK_s:
+				#ifdef PYRA
+				case SDLK_END:
+				#endif
 				key_b = 0;
 				break;
 
 				case SDLK_c:
 				case SDLK_d:
+				#ifdef PYRA
+				case SDLK_HOME:
+				#endif
 				key_c = 0;
 				break;
 
@@ -552,16 +568,25 @@ void check_events()
 
 				case SDLK_z:
 				case SDLK_a:
+				#ifdef PYRA
+				case SDLK_PAGEDOWN:
+				#endif
 				key_a = 1;
 				break;
 
 				case SDLK_x:
 				case SDLK_s:
+				#ifdef PYRA
+				case SDLK_END:
+				#endif
 				key_b = 1;
 				break;
 
 				case SDLK_c:
 				case SDLK_d:
+				#ifdef PYRA
+				case SDLK_HOME:
+				#endif
 				key_c = 1;
 				break;
 
@@ -579,12 +604,14 @@ void check_events()
 				quickload();
 				break;
 
+				#ifndef PYRA
 				case SDLK_RETURN:
 				if (event.key.keysym.mod & KMOD_ALT)
 				{
 					toggle_fullscreen();
 				}
 				break;
+				#endif
 
 				case SDLK_q:
 				key_a = 1;

@@ -83,7 +83,7 @@ void play_sample(int index, int volume, int channel)
 	if (cached_samples[index] != NULL)
 	{
 		LOG(("play cached sample\n"));
-		Mix_PlayChannel(channel, cached_samples[index], 0);
+		Mix_PlayChannelTimed(channel, cached_samples[index], 0, -1);
 		return;
 	}
 

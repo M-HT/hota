@@ -35,8 +35,10 @@ static SDL_Renderer *renderer;
 static SDL_Texture *texture;
 static SDL_Surface *screen;
 static SDL_Palette *screen_palette;
-#if !SDL_VERSION_ATLEAST(2,0,12)
-static Uint16 texture_palette[16];
+static Uint32 texture_palette[16];
+static int texture_red_low;
+#if SDL_VERSION_ATLEAST(2,0,18)
+static int renderer_change_sync;
 #endif
 
 static int palette_changed = 0;
@@ -254,13 +256,9 @@ void render3x(char *src)
 */
 void render(char *src)
 {
-#if SDL_VERSION_ATLEAST(2,0,12)
-	SDL_Surface *texture_surface;
-#else
-	Uint16 *texture_pixels;
+	Uint32 *texture_pixels;
 	Uint8 *screen_pixels;
 	int texture_pitch, h, x;
-#endif
 
 	SDL_LockSurface(screen);
 
@@ -302,12 +300,6 @@ void render(char *src)
 
 	scroll_reg = 0;
 
-#if SDL_VERSION_ATLEAST(2,0,12)
-	SDL_UnlockSurface(screen);
-	SDL_LockTextureToSurface(texture, NULL, &texture_surface);
-	SDL_BlitSurface(screen, NULL, texture_surface, NULL);
-	SDL_UnlockTexture(texture);
-#else
 	SDL_LockTexture(texture, NULL, (void **) &texture_pixels, &texture_pitch);
 
 	screen_pixels = (Uint8 *)screen->pixels;
@@ -318,12 +310,12 @@ void render(char *src)
 			texture_pixels[x] = texture_palette[screen_pixels[x]];
 		}
 		screen_pixels += screen->pitch;
-		texture_pixels = (Uint16 *) (texture_pitch + (Uint8 *)texture_pixels);
+		texture_pixels = (Uint32 *) (texture_pitch + (Uint8 *)texture_pixels);
 	}
 
 	SDL_UnlockTexture(texture);
 	SDL_UnlockSurface(screen);
-#endif
+
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
 }
@@ -352,13 +344,11 @@ void set_palette_rgb12(unsigned char *rgb12)
 		g = ((c >> 4) & 0xf) << 4;
 		b = ((c >> 8) & 0xf) << 4;
 
-#if !SDL_VERSION_ATLEAST(2,0,12)
-		texture_palette[i] = (r << 4) | g | (b >> 4);
-#endif
-
 		palette[i].r = r | (r >> 4);
 		palette[i].g = g | (g >> 4);
 		palette[i].b = b | (b >> 4);
+
+		texture_palette[i] = (texture_red_low) ? (palette[i].r | (palette[i].g << 8) | (palette[i].b << 16)) : (palette[i].b | (palette[i].g << 8) | (palette[i].r << 16));
 	}
 
 	palette_changed = 1;
@@ -381,20 +371,15 @@ void set_palette(int which)
 void toggle_fullscreen()
 {
 	fullscreen = 1 ^ fullscreen;
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	window = NULL;
-	renderer = NULL;
-	texture = NULL;
 
 	if (fullscreen == 0)
 	{
 		LOG(("create SDL surface of 304x192\n"));
 
-		window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 304*cls.scale, 192*cls.scale, 0);
-		renderer = SDL_CreateRenderer(window, -1, 0);
-		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB444, SDL_TEXTUREACCESS_STREAMING, 304*cls.scale, 192*cls.scale);
+		SDL_SetWindowFullscreen(window, 0);
+#if SDL_VERSION_ATLEAST(2,0,18)
+		if (renderer_change_sync) SDL_RenderSetVSync(renderer, 0);
+#endif
 
 		SDL_ShowCursor(1);
 	}
@@ -402,32 +387,85 @@ void toggle_fullscreen()
 	{
 		LOG(("setting fullscreen mode\n"));
 
-		window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-		SDL_RenderSetLogicalSize(renderer, 304*cls.scale, 192*cls.scale);
-		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB444, SDL_TEXTUREACCESS_STREAMING, 304*cls.scale, 192*cls.scale);
+		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+#if SDL_VERSION_ATLEAST(2,0,18)
+		if (renderer_change_sync) SDL_RenderSetVSync(renderer, 1);
+#endif
 
 		SDL_ShowCursor(0);
 	}
 }
 
+static void atexit_callback(void)
+{
+	SDL_FreeSurface(screen);
+	SDL_FreePalette(screen_palette);
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+}
+
 int render_create_surface()
 {
-	window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 304*cls.scale, 192*cls.scale, 0);
+	Uint32 flags, format;
+	int index;
+	SDL_RendererInfo info;
+
+#if SDL_VERSION_ATLEAST(2,0,18)
+	SDL_version linked;
+	SDL_GetVersion(&linked);
+	renderer_change_sync = 0;
+	if (SDL_VERSIONNUM(linked.major, linked.minor, linked.patch) >= SDL_VERSIONNUM(2, 0, 18))
+	{
+		renderer_change_sync = 1;
+	}
+#endif
+
+	window = SDL_CreateWindow("Heart of The Alien Redux", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 304*cls.scale, 192*cls.scale, SDL_WINDOW_HIDDEN);
 	if (window == NULL)
 	{
 		return -1;
 	}
 
-	renderer = SDL_CreateRenderer(window, -1, 0);
+	flags = SDL_RENDERER_PRESENTVSYNC;
+#if SDL_VERSION_ATLEAST(2,0,18)
+	if (renderer_change_sync)
+	{
+		flags = 0;
+	}
+#endif
+
+	renderer = SDL_CreateRenderer(window, -1, flags);
 	if (renderer == NULL)
 	{
 		return -2;
 	}
 
+#ifndef PYRA
+	SDL_RenderSetLogicalSize(renderer, 304*cls.scale, 192*cls.scale);
+#endif
+
+	format = 0;
+
+	if (SDL_GetRendererInfo(renderer, &info) <= 0)
+	{
+		for (index = 0; index < (int)info.num_texture_formats; index++)
+		{
+			if (info.texture_formats[index] == SDL_PIXELFORMAT_ARGB8888 || info.texture_formats[index] == SDL_PIXELFORMAT_ABGR8888 || info.texture_formats[index] == SDL_PIXELFORMAT_RGB888 || info.texture_formats[index] == SDL_PIXELFORMAT_BGR888)
+			{
+				format = info.texture_formats[index];
+				break;
+			}
+		}
+	}
+
+	if (format == 0) format = SDL_PIXELFORMAT_ABGR8888;
+
+	texture_red_low = (format == SDL_PIXELFORMAT_ABGR8888 || format == SDL_PIXELFORMAT_BGR888) ? 1 : 0;
+
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB444, SDL_TEXTUREACCESS_STREAMING, 304*cls.scale, 192*cls.scale);
+	texture = SDL_CreateTexture(renderer, format, SDL_TEXTUREACCESS_STREAMING, 304*cls.scale, 192*cls.scale);
 	if (texture == NULL)
 	{
 		return -3;
@@ -447,10 +485,14 @@ int render_create_surface()
 
 	SDL_SetSurfacePalette(screen, screen_palette);
 
+	SDL_ShowWindow(window);
+
 	if (fullscreen_flag)
 	{
 		toggle_fullscreen();
 	}
+
+	atexit(atexit_callback);
 
 	return 0;
 }
